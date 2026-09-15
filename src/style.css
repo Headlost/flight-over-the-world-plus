@@ -9,6 +9,8 @@
   --menu-border: rgba(133, 169, 205, 0.48);
   --menu-field: #233e59;
   --menu-field-border: #5d7c9b;
+  --menu-glow: rgba(216, 162, 74, 0.14);
+  --menu-preview-brightness: 1;
 }
 
 #settings-toggle { position: fixed; right: 16px; top: 14px; z-index: 70; padding: 9px 16px; font: 600 13px system-ui; background: #17212de8; color: #eef6ff; border: 1px solid #91aac855; border-radius: 9px; cursor: pointer; }
@@ -23,6 +25,7 @@ body:not(.aerobatic-selected) .touch-yaw-controls { display: none; }
 #touch-help { display: none; width: 38px !important; padding: 0 !important; font-size: 18px !important; }
 .flight-dialog { width: min(620px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 26px; color: #eaf2ff; background: #101c29; border: 1px solid #638098; border-radius: 18px; box-shadow: 0 24px 90px #000a; font: 14px/1.6 system-ui, sans-serif; }
 .flight-dialog::backdrop { background: #030b16cc; backdrop-filter: blur(8px); }
+.display-settings-dialog::backdrop { background: #030b1673; backdrop-filter: blur(2px); }
 .flight-dialog h2 { margin: 0; font-size: 23px; }
 .flight-dialog .dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .flight-dialog label { display: block; margin: 15px 0 6px; }
@@ -556,9 +559,9 @@ kbd {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background:
-    radial-gradient(circle at 70% 15%, rgba(216, 162, 74, 0.14), transparent 45%),
+    radial-gradient(circle at 70% 15%, var(--menu-glow), transparent 45%),
     var(--menu-navy);
-  transition: opacity 0.35s ease;
+  /* This surface also covers a flight reset; it must be opaque immediately. */
 }
 
 #menu.hidden {
@@ -580,7 +583,7 @@ kbd {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
   background:
-    radial-gradient(circle at 70% 15%, rgba(216, 162, 74, 0.14), transparent 45%),
+    radial-gradient(circle at 70% 15%, var(--menu-glow), transparent 45%),
     var(--menu-navy);
   transition: opacity 0.35s ease;
 }
@@ -697,6 +700,7 @@ kbd {
 }
 
 #lobby-carousel-canvas {
+  filter: brightness(var(--menu-preview-brightness));
   flex: 1;
   min-width: 0;
   display: block;
@@ -1215,6 +1219,7 @@ kbd {
 }
 
 #carousel-canvas {
+  filter: brightness(var(--menu-preview-brightness));
   flex: 1;
   min-width: 0; /* inaczej canvas nie kurczy się poniżej szerokości bufora i wystaje z karty */
   display: block;

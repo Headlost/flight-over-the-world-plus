@@ -37,9 +37,28 @@ function saveSettings() {
   } catch { /* local preferences are optional */ }
 }
 
+function applyMenuBrightness() {
+  const multiplier = sanitizeBrightnessMultiplier(settings.brightness);
+  const colors = [
+    ['--menu-navy', [8, 20, 38], 1],
+    ['--menu-surface', [13, 31, 53], 0.97],
+    ['--menu-border', [133, 169, 205], 0.48],
+    ['--menu-field', [35, 62, 89], 1],
+    ['--menu-field-border', [93, 124, 155], 1],
+    ['--menu-glow', [216, 162, 74], 0.14],
+  ];
+  for (const [property, rgb, alpha] of colors) {
+    const adjusted = rgb.map(channel => Math.min(255, Math.round(channel * multiplier)));
+    document.documentElement.style.setProperty(property, `rgba(${adjusted.join(', ')}, ${alpha})`);
+  }
+  // Menu previews are separate transparent canvases. CSS updates their last
+  // rendered frame immediately, including while a settings dialog is open.
+  document.documentElement.style.setProperty('--menu-preview-brightness', String(multiplier));
+}
+
 export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQualityChange) {
   const dialog = document.createElement('dialog');
-  dialog.className = 'flight-dialog';
+  dialog.className = 'flight-dialog display-settings-dialog';
   dialog.setAttribute('aria-labelledby', 'settings-title');
   dialog.innerHTML = `<form method="dialog">
     <div class="dialog-heading"><h2 id="settings-title">Flight settings</h2><button value="close" aria-label="Close settings">×</button></div>
@@ -57,7 +76,7 @@ export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQu
         <span>100% · brighter</span>
       </div>
     </div>
-    <p class="settings-note" id="display-brightness-note">50% keeps the standard image. Move toward 0% to make the scene clearly darker or toward 100% to make it clearly brighter. Filmic exposure preserves contrast and terrain detail. Interface text is unchanged.</p>
+    <p class="settings-note" id="display-brightness-note">50% keeps the standard image. Move toward 0% for a darker view or toward 100% for a brighter view. Menus and aircraft previews update immediately; text stays easy to read.</p>
     <button value="close">Done</button>
   </form>`;
   document.body.append(dialog);
@@ -72,10 +91,12 @@ export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQu
     brightnessOutput.textContent = `${percent}%`;
   };
   renderBrightnessLevel(brightnessLevelFromMultiplier(settings.brightness));
+  applyMenuBrightness();
   const syncBrightness = (persist = false) => {
     const level = sanitizeBrightnessLevel(brightness.value);
     settings.brightness = brightnessMultiplierFromLevel(level);
     renderBrightnessLevel(level);
+    applyMenuBrightness();
     if (persist) saveSettings();
     onBrightnessChange();
   };

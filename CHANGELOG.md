@@ -23,6 +23,9 @@ Wersja 1.0 była punktem startowym zaimportowanym jako fork wcześniejszego proj
 - naprawiono ponowne ładowanie terenu po wyjściu z lotu i zmianie pojazdu oraz zabezpieczono obsługę nietypowych zdarzeń klawiatury;
 - nowy lot resetuje kamerę: skierowanie widoku w niebo w poprzednim locie nie powoduje już fałszywego komunikatu o braku terenu po zmianie samolotu lub miasta;
 - ponowne pobranie kafelka usuwa błędny wpis z pamięci, a zwolnienie pamięci po poprzednim locie wznawia ładowanie nowego terenu także przy nieruchomej kamerze;
+- Dziki dzik rozpoczyna i ponawia lot po kraksie 200 m nad terenem; restart czeka na gotowy widok i blokuje sterowanie podczas ładowania, bez widocznego skoku z wysokiego pułapu;
+- suwak jasności zmienia od razu tła ekranu startowego, menu i lobby oraz podglądy samolotów, zachowując czytelność tekstu;
+- fighter ma dwa pulsujące płomienie wylotowe dopasowane do dysz modelu, zwiększające się wraz z mocą silników;
 - opisy sterowania w menu i mobilnym Help pokazują teraz wyłącznie klawisze i akcje wybranego pojazdu, w tym osobny profil rakiety w kosmosie;
 - poprawiono streaming kafelków, LOD, kamery, modele, sterowanie dotykowe, muzykę i dźwięki.
 
