@@ -160,26 +160,61 @@ test('an incomplete custom Cesium token blocks the mode choice without falling b
   expect(await page.evaluate(() => sessionStorage.getItem('fotw-cesium-access-v1'))).toBeNull();
 });
 
-test('brightness uses filmic exposure on Earth and in space and persists', async ({page}) => {
+test('brightness uses a 0-100 scale with neutral 50 and persists on Earth and in space', async ({page}) => {
   await page.addInitScript(() => {
     if (!localStorage.getItem('fotw-settings')) localStorage.setItem('fotw-settings',JSON.stringify({
-      quality:'performance',adaptive:false,brightness:1.2,
+      quality:'performance',adaptive:false,brightness:1,
     }));
   });
   await page.goto('/');
-  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(1.32, 5);
+  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(1.1, 5);
   await page.locator('#settings-toggle').click();
-  await expect(page.locator('#display-brightness')).toHaveValue('120');
-  await page.locator('#display-brightness').fill('85');
-  await expect(page.locator('#display-brightness-value')).toHaveText('85%');
-  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(0.935, 5);
+  const slider = page.locator('#display-brightness');
+  await expect(slider).toHaveAttribute('min','0');
+  await expect(slider).toHaveAttribute('max','100');
+  await expect(slider).toHaveAttribute('step','1');
+  await expect(slider).toHaveValue('50');
+  await expect(slider).toHaveAttribute('aria-valuetext','50%');
+  await expect(page.locator('#display-brightness-value')).toHaveText('50%');
+
+  const checkpoints = [
+    [0, 1.1 * 0.35],
+    [25, 1.1 * Math.sqrt(0.35)],
+    [50, 1.1],
+    [75, 1.1 * Math.sqrt(1.8)],
+    [100, 1.1 * 1.8],
+  ];
+  for (const [level, exposure] of checkpoints) {
+    await slider.fill(String(level));
+    await expect(slider).toHaveAttribute('aria-valuetext',`${level}%`);
+    await expect(page.locator('#display-brightness-value')).toHaveText(`${level}%`);
+    await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(exposure, 5);
+  }
+
+  await slider.fill('25');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('fotw-settings')).brightness)).toBeCloseTo(Math.sqrt(0.35), 10);
   await page.getByRole('button',{name:'Done',exact:true}).click();
   expect(await page.evaluate(() => window.__testRocketLaunch())).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__dbg?.spaceMode)).toBe(true);
-  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(0.969, 5);
+  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(1.14 * Math.sqrt(0.35), 5);
   await page.reload();
   await page.locator('#settings-toggle').click();
-  await expect(page.locator('#display-brightness')).toHaveValue('85');
+  await expect(page.locator('#display-brightness')).toHaveValue('25');
+});
+
+test('a legacy brightness multiplier keeps its image until the player moves the new control', async ({page}) => {
+  await page.addInitScript(() => localStorage.setItem('fotw-settings',JSON.stringify({
+    quality:'performance',adaptive:false,brightness:1.2,
+  })));
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(1.32, 5);
+  await page.locator('#settings-toggle').click();
+  await expect(page.locator('#display-brightness')).toHaveValue('66');
+  await expect(page.locator('#display-brightness-value')).toHaveText('66%');
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('fotw-settings')).brightness)).toBe(1.2);
+  await page.locator('#display-brightness').fill('50');
+  await expect.poll(() => page.evaluate(() => window.__dbg?.toneMappingExposure)).toBeCloseTo(1.1, 5);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem('fotw-settings')).brightness)).toBe(1);
 });
 
 test('terrain authentication rotates a rejected token before loading Google tiles', async ({page}) => {

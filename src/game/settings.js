@@ -1,6 +1,12 @@
 import { QUALITY } from './quality.js';
 import { ionTokenList } from './ionTokens.js';
-import { DISPLAY_BRIGHTNESS, sanitizeBrightnessMultiplier } from './displayBrightness.js';
+import {
+  brightnessLevelFromMultiplier,
+  brightnessMultiplierFromLevel,
+  DISPLAY_BRIGHTNESS,
+  sanitizeBrightnessLevel,
+  sanitizeBrightnessMultiplier,
+} from './displayBrightness.js';
 
 function readSettings() {
   try {
@@ -31,7 +37,7 @@ function saveSettings() {
   } catch { /* local preferences are optional */ }
 }
 
-export function setupSettings(onQualityChange, onOpen) {
+export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQualityChange) {
   const dialog = document.createElement('dialog');
   dialog.className = 'flight-dialog';
   dialog.setAttribute('aria-labelledby', 'settings-title');
@@ -43,10 +49,15 @@ export function setupSettings(onQualityChange, onOpen) {
     <p class="settings-note" id="quality-warning">Adaptive resolution protects frame rate while nearby map tiles sharpen progressively. Close-up detail is limited by the source survey available at a location.</p>
     <div class="display-brightness-control">
       <label for="display-brightness">Image brightness</label>
-      <output id="display-brightness-value" for="display-brightness">100%</output>
-      <input id="display-brightness" type="range" min="${DISPLAY_BRIGHTNESS.min * 100}" max="${DISPLAY_BRIGHTNESS.max * 100}" step="1" value="100" aria-describedby="display-brightness-note">
+      <output id="display-brightness-value" for="display-brightness">50%</output>
+      <input id="display-brightness" type="range" min="${DISPLAY_BRIGHTNESS.levelMin}" max="${DISPLAY_BRIGHTNESS.levelMax}" step="1" value="${DISPLAY_BRIGHTNESS.levelDefault}" aria-describedby="display-brightness-scale display-brightness-note">
+      <div class="display-brightness-scale" id="display-brightness-scale" aria-hidden="true">
+        <span>0% · darker</span>
+        <span>50% · standard</span>
+        <span>100% · brighter</span>
+      </div>
     </div>
-    <p class="settings-note" id="display-brightness-note">Adjusts the 3D scene through filmic exposure so highlights, contrast and terrain detail remain visible. Interface text is unchanged.</p>
+    <p class="settings-note" id="display-brightness-note">50% keeps the standard image. Move toward 0% to make the scene clearly darker or toward 100% to make it clearly brighter. Filmic exposure preserves contrast and terrain detail. Interface text is unchanged.</p>
     <button value="close">Done</button>
   </form>`;
   document.body.append(dialog);
@@ -54,24 +65,27 @@ export function setupSettings(onQualityChange, onOpen) {
   const brightness = dialog.querySelector('#display-brightness');
   const brightnessOutput = dialog.querySelector('#display-brightness-value');
   a.checked = settings.adaptive;
-  brightness.value = String(Math.round(settings.brightness * 100));
-  const syncBrightness = (persist = false) => {
-    settings.brightness = sanitizeBrightnessMultiplier(Number(brightness.value) / 100);
-    const percent = Math.round(settings.brightness * 100);
+  const renderBrightnessLevel = (level) => {
+    const percent = Math.round(sanitizeBrightnessLevel(level));
     brightness.value = String(percent);
     brightness.setAttribute('aria-valuetext', `${percent}%`);
     brightnessOutput.textContent = `${percent}%`;
-    if (persist) saveSettings();
-    onQualityChange();
   };
-  syncBrightness(false);
+  renderBrightnessLevel(brightnessLevelFromMultiplier(settings.brightness));
+  const syncBrightness = (persist = false) => {
+    const level = sanitizeBrightnessLevel(brightness.value);
+    settings.brightness = brightnessMultiplierFromLevel(level);
+    renderBrightnessLevel(level);
+    if (persist) saveSettings();
+    onBrightnessChange();
+  };
   const change = () => {
     settings.quality = 'performance'; settings.adaptive = a.checked;
     saveSettings();
     onQualityChange();
   };
   a.addEventListener('change', change);
-  brightness.addEventListener('input', () => syncBrightness(true));
+  brightness.addEventListener('input', () => syncBrightness(false));
   brightness.addEventListener('change', () => syncBrightness(true));
   const button = document.createElement('button');
   button.id = 'settings-toggle'; button.type = 'button'; button.textContent = '⚙ Settings';

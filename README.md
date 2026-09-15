@@ -10,7 +10,7 @@ Przeglądarkowa gra o lataniu nad fotorealistyczną Ziemią i podróżach poza j
 
 ## [▶ Graj online](https://headlost.github.io/flight-over-the-world-plus/)
 
-[![Lot w pobliżu Saturna w Flight Over the World +](docs/screens/spaceflight.webp)](https://headlost.github.io/flight-over-the-world-plus/)
+[![Lot samolotem nad Warszawą w Flight Over the World +](docs/screens/warsaw-flight-main.webp)](https://headlost.github.io/flight-over-the-world-plus/)
 
 Gra działa bez instalacji i bez zakładania konta. Domyślny dostęp do mapy jest aktywny od razu; własny token Cesium ion jest opcjonalny.
 
@@ -23,7 +23,7 @@ Gra działa bez instalacji i bez zakładania konta. Domyślny dostęp do mapy je
 - akrobacje, dym, lądowanie, spacer po ulicach i dachach, widok pierwszoosobowy oraz ponowny start;
 - pełny Układ Słoneczny, wejścia atmosferyczne, powierzchnie planet, Droga Mleczna, czarna dziura i sekwencja tesseraktu;
 - zielono-turkusowy spadochroniarz z niebieskimi akcentami, czytelny na jasnym niebie i ciemnym tle;
-- regulacja jasności oparta na ekspozycji oraz automatyczne skalowanie renderowania, bez nakładania wyblakłej warstwy na obraz;
+- regulacja jasności 0–100% z neutralnym ustawieniem 50%, oparta na ekspozycji i bez nakładania wyblakłej warstwy na obraz;
 - muzyka, proceduralne efekty silników i wiatru oraz osobna regulacja dźwięków otoczenia;
 - dopracowany układ dotykowy w orientacji poziomej, z płynniejszym joystickiem i czystym środkiem ekranu.
 
@@ -33,16 +33,28 @@ Kliknij obraz, aby otworzyć go w pełnym rozmiarze.
 
 <table>
   <tr>
-    <td><a href="docs/screens/start-cesium-token.webp"><img src="docs/screens/start-cesium-token.webp" alt="Ekran startowy i wybór tokenu Cesium" width="440"></a></td>
-    <td><a href="docs/screens/parachutist-preview.webp"><img src="docs/screens/parachutist-preview.webp" alt="Podgląd zielono-niebieskiego spadochroniarza" width="440"></a></td>
+    <td><a href="docs/screens/start-default-access.webp"><img src="docs/screens/start-default-access.webp" alt="Ekran startowy z domyślnym dostępem do terenu" width="440"></a></td>
+    <td><a href="docs/screens/start-cesium-token.webp"><img src="docs/screens/start-cesium-token.webp" alt="Ekran startowy i wybór własnego tokenu Cesium" width="440"></a></td>
   </tr>
   <tr>
+    <td><a href="docs/screens/single-player-menu.webp"><img src="docs/screens/single-player-menu.webp" alt="Wybór samolotu i miejsca startu w trybie Single Player" width="440"></a></td>
     <td><a href="docs/screens/multiplayer-lobby.webp"><img src="docs/screens/multiplayer-lobby.webp" alt="Poczekalnia multiplayer" width="440"></a></td>
-    <td><a href="docs/screens/spaceflight.webp"><img src="docs/screens/spaceflight.webp" alt="Lot kosmiczny" width="440"></a></td>
   </tr>
   <tr>
-    <td><a href="docs/screens/mobile-controls-landscape.webp"><img src="docs/screens/mobile-controls-landscape.webp" alt="Sterowanie mobilne w orientacji poziomej" width="440"></a></td>
-    <td><a href="docs/screens/mobile-help-settings.webp"><img src="docs/screens/mobile-help-settings.webp" alt="Pomoc i ustawienia na telefonie" width="440"></a></td>
+    <td><a href="docs/screens/multiplayer-room-current.webp"><img src="docs/screens/multiplayer-room-current.webp" alt="Aktualny pokój multiplayer z czatem i kodem QR" width="440"></a></td>
+    <td><a href="docs/screens/earth-orbit-multiplayer.webp"><img src="docs/screens/earth-orbit-multiplayer.webp" alt="Wspólny lot rakiet na orbicie Ziemi" width="440"></a></td>
+  </tr>
+  <tr>
+    <td><a href="docs/screens/black-hole-capture.webp"><img src="docs/screens/black-hole-capture.webp" alt="Rakieta przechwycona przez dysk akrecyjny czarnej dziury" width="440"></a></td>
+    <td><a href="docs/screens/saturn-rings.webp"><img src="docs/screens/saturn-rings.webp" alt="Lot rakietą wśród pierścieni Saturna" width="440"></a></td>
+  </tr>
+  <tr>
+    <td><a href="docs/screens/warsaw-airliner.webp"><img src="docs/screens/warsaw-airliner.webp" alt="Lot samolotem pasażerskim nad Warszawą" width="440"></a></td>
+    <td><a href="docs/screens/parachutist-warsaw.webp"><img src="docs/screens/parachutist-warsaw.webp" alt="Spadochroniarz przy Pałacu Kultury i Nauki w Warszawie" width="440"></a></td>
+  </tr>
+  <tr>
+    <td><a href="docs/screens/parachutist-city.webp"><img src="docs/screens/parachutist-city.webp" alt="Spadochroniarz między wieżowcami" width="440"></a></td>
+    <td><a href="docs/screens/parachutist-alcatraz.webp"><img src="docs/screens/parachutist-alcatraz.webp" alt="Lot spadochroniarzem nad wyspą Alcatraz" width="440"></a></td>
   </tr>
 </table>
 
