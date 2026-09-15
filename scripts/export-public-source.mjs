@@ -30,7 +30,7 @@ for(const name of files) {
     fs.writeFileSync(target,'/* '+manifest.notice+'\n * '+selected.get(name).description+'\n * Oryginalny moduł znajduje się w prywatnej dystrybucji źródeł.\n */\n');
     omitted++;
   } else {
-    if(/(?:^|\/)(?:\.env(?:\..*)?|[^/]+\.(?:js|mjs|cjs|ts|tsx|jsx|json|md|yml|yaml|html|txt|env|example|css|scss|svg|xml|cmd|bat|ps1|sh|toml|ini))$/i.test(name)) {
+    if(/(?:^|\/)(?:\.env(?:\..*)?|[^/]+\.(?:js|mjs|cjs|ts|tsx|jsx|json|md|yml|yaml|html|txt|env|example|css|scss|svg|xml|cmd|bat|ps1|sh|py|toml|ini))$/i.test(name)) {
       const text=fs.readFileSync(source,'utf8');
       if(/eyJ[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}/.test(text)) {
         throw Error('Credential-shaped JWT found; public export stopped: '+name);

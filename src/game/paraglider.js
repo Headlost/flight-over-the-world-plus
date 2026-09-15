@@ -1,11 +1,11 @@
 import { Group, MathUtils } from 'three';
 import { createParachutistCharacter } from './parachutistCharacter.js';
 import { createParachutistCanopy, updateParachutistSuspension } from './parachutistCanopy.js';
+import { updateParachutistCharacter } from './parachutistMotion.js';
 
 const R_EARTH = 6378137;
-// A brisk, predictable walking pace. Keeping it constant makes precise movement
-// on roofs and narrow streets easier than switching between walk and run.
-const WALK_SPEED = 2.5;
+export const PARACHUTIST_WALK_SPEED = 2.5;
+export const PARACHUTIST_RUN_SPEED = 4.8;
 export const PARACHUTIST_GROUND_CLEARANCE = 0.32;
 const GROUND_CLEARANCE = PARACHUTIST_GROUND_CLEARANCE;
 const GENTLE_LAUNCH_HEIGHT = 12;
@@ -65,46 +65,15 @@ export function setParachutistState(root, state, speed = 0) {
   if (!rig) return;
   rig.canopy.visible = state !== "grounded";
   rig.active = state === "grounded"
-    ? Math.abs(speed) > 0.15 ? "walk" : "idle"
+    ? Math.abs(speed) > 3.2 ? "run" : Math.abs(speed) > 0.15 ? "walk" : "idle"
     : "airborne";
 }
 
-function approach(current, target, amount) {
-  return current + (target - current) * amount;
-}
-
-export function updateParachutistModel(root, state, speed, dt) {
+export function updateParachutistModel(root, state, speed, dt, input = {}) {
   const rig = root?.userData?.parachutist;
   if (!rig) return;
   setParachutistState(root, state, speed);
-  const model = rig.character;
-  const step = Math.min(1, Math.max(0, dt) * 10);
-  const moving = state === "grounded" && Math.abs(speed) > 0.15;
-  if (moving) model.phase += Math.min(0.05, dt) * 7.4 * Math.sign(speed || 1);
-  const gait = moving ? Math.sin(model.phase) : 0;
-  const armStride = 0.72;
-  const legStride = 0.28;
-
-  if (model.headGroup) {
-    model.headGroup.rotation.y = approach(model.headGroup.rotation.y, moving ? Math.sin(model.phase * 0.42) * 0.12 : 0, step);
-    model.headGroup.rotation.x = approach(model.headGroup.rotation.x, state === "grounded" ? gait * 0.025 : -0.045, step);
-  }
-
-  model.body.position.y = approach(model.body.position.y, state === "grounded" ? 0.92 + Math.abs(Math.sin(model.phase * 2)) * (moving ? 0.035 : 0) : 0.82, step);
-  model.body.rotation.x = approach(model.body.rotation.x, state === "grounded" ? 0 : -0.14, step);
-  for (const arm of model.arms) {
-    const groundSwing = gait * armStride * arm.side;
-    arm.upper.rotation.x = approach(arm.upper.rotation.x, state === "grounded" ? groundSwing : -0.2, step);
-    arm.upper.rotation.z = approach(arm.upper.rotation.z, state === "grounded" ? -arm.side * 0.1 : -arm.side * 0.16, step);
-    arm.lower.rotation.x = approach(arm.lower.rotation.x, state === "grounded" ? -Math.max(0, -groundSwing) * 0.35 : 2.52, step);
-  }
-  for (const leg of model.legs) {
-    const legSwing = gait * legStride * leg.side;
-    // +X at the hip puts the knees in front of the pilot (forward is -Z).
-    // The old signs folded both knees through the back of the body in flight.
-    leg.upper.rotation.x = approach(leg.upper.rotation.x, state === "grounded" ? legSwing : 0.72, step);
-    leg.lower.rotation.x = approach(leg.lower.rotation.x, state === "grounded" ? -Math.max(0, legSwing) * 0.62 : -1.05, step);
-  }
+  rig.pose = updateParachutistCharacter(rig.character, { ...input, state, speed, dt });
   if (rig.canopy.visible) updateParachutistSuspension(rig.canopy);
 }
 
@@ -143,6 +112,8 @@ export class ParachutistController {
     this.speed = this.cruise;
     this.throttle = 0.5;
     this.verticalSpeed = -1.35;
+    this.landingId = 0;
+    this.landingImpact = 0;
     this.state = "airborne";
     this.groundHeight = null;
     this.groundClearance = Infinity;
@@ -159,7 +130,11 @@ export class ParachutistController {
       this.previousGroundPose = { lat: this.lat, lon: this.lon, height: this.height };
       this.heading = MathUtils.euclideanModulo(this.heading + ctrl.roll * 1.9 * dt, Math.PI * 2);
       const direction = MathUtils.clamp(-ctrl.pitch, -1, 1);
-      const target = direction * WALK_SPEED;
+      // Shift (the touch Faster button) runs forward. Backward movement keeps
+      // the precise walking pace used on roofs and narrow ledges.
+      const gaitSpeed = direction > 0 && ctrl.throttle > 0.5
+        ? PARACHUTIST_RUN_SPEED : PARACHUTIST_WALK_SPEED;
+      const target = direction * gaitSpeed;
       this.speed += (target - this.speed) * (1 - Math.exp(-12 * dt));
       if (Math.abs(direction) < 0.02) this.speed *= Math.exp(-14 * dt);
       advance(this, this.speed * dt);
@@ -235,6 +210,12 @@ export class ParachutistController {
 
   land(surfaceHeight) {
     if (!Number.isFinite(surfaceHeight)) return;
+    // Capture the collision before stopping the controller. Surface/LOD
+    // corrections while already grounded must not replay the impact.
+    if (this.state !== "grounded") {
+      this.landingId += 1;
+      this.landingImpact = MathUtils.clamp(Number.isFinite(this.verticalSpeed) ? -this.verticalSpeed : 0, 0, 20);
+    }
     this.state = "grounded";
     this.height = surfaceHeight + GROUND_CLEARANCE;
     this.groundHeight = surfaceHeight;

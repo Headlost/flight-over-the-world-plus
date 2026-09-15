@@ -78,11 +78,11 @@ const PROFILES = Object.freeze({
 
   parachutist: freezeProfile({
     desktopLines: [
-      ["On foot: ", key("W/S"), " walk · ", key("A/D"), " turn · ", key("Space"), " gentle takeoff · ", key("R"), " high takeoff"],
+      ["On foot: ", key("W/S"), " walk · ", key("Shift + W"), " run · ", key("A/D"), " turn · ", key("Space"), " gentle takeoff · ", key("R"), " high takeoff"],
       ["Under canopy: ", key("A/D"), " steer · hold ", key("W"), " gentle climb · ", key("S"), " descend and slow · ", key("Shift/Ctrl"), " faster/slower"],
       ["Right-drag to look around · scroll fully in for first-person · ", key("C"), " center camera · ", key("Esc"), " pause"],
     ],
-    touchSummary: "Walk or steer with the joystick; takeoff controls appear after landing.",
+    touchSummary: "Walk or steer with the joystick; hold Faster to run forward. Takeoff controls appear after landing.",
     helpRows: [
       {
         term: "Joystick on foot",
@@ -98,7 +98,7 @@ const PROFILES = Object.freeze({
       },
       {
         term: "Faster / Slower",
-        description: "Changes horizontal speed while flying under the canopy.",
+        description: "Hold Faster with the joystick forward to run on foot. Under canopy, these buttons change horizontal speed.",
       },
       {
         term: "First-person view",

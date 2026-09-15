@@ -1,0 +1,93 @@
+{
+  "blend": "art/models/parachutist-studio.blend",
+  "rigBones": 49,
+  "runtimeNodes": 94,
+  "clips": [
+    {
+      "name": "01_Idle",
+      "start": 1,
+      "end": 61,
+      "loop": true
+    },
+    {
+      "name": "02_Walk",
+      "start": 73,
+      "end": 104,
+      "loop": true
+    },
+    {
+      "name": "03_Run",
+      "start": 116,
+      "end": 146,
+      "loop": true
+    },
+    {
+      "name": "04_Flight",
+      "start": 158,
+      "end": 248,
+      "loop": false
+    },
+    {
+      "name": "05_Pull_Left",
+      "start": 260,
+      "end": 335,
+      "loop": null
+    },
+    {
+      "name": "06_Pull_Right",
+      "start": 347,
+      "end": 422,
+      "loop": null
+    },
+    {
+      "name": "07_Flare_Both_Hands",
+      "start": 434,
+      "end": 509,
+      "loop": null
+    },
+    {
+      "name": "08_Soft_Landing",
+      "start": 521,
+      "end": 581,
+      "loop": null
+    },
+    {
+      "name": "09_Hard_Landing",
+      "start": 593,
+      "end": 653,
+      "loop": null
+    }
+  ],
+  "dynamicKeys": {
+    "Branched suspension and brake lines": 565,
+    "Four load-bearing webbing risers": 565
+  },
+  "verification": {
+    "recoveredSkinBones": 49,
+    "namedMotionClips": 9,
+    "evaluatedPoseFrames": [
+      1,
+      73,
+      81,
+      89,
+      104,
+      116,
+      123,
+      131,
+      146,
+      527,
+      599
+    ],
+    "quaternionHemisphereFlips": 0,
+    "minimumAdjacentQuaternionDot": 0.45863454928636216,
+    "supportSoleHeightMeters": 0.03,
+    "vanguardRunningFlightSoleHeightMeters": 0.06129249557852745,
+    "airborneBoundsZ": [
+      0.3790004253387451,
+      9.4399995803833
+    ],
+    "markerCameras": "Ground: body closeup; flight and controls: full canopy overview",
+    "originalScenePreserved": true,
+    "fullCanopyCount": 2
+  }
+}

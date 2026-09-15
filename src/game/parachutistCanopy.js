@@ -147,18 +147,24 @@ export function updateParachutistSuspension(group) {
   if (!rig) return;
   const {character,suspensionPositions,riserPositions,banks,toggles} = rig;
   character.body.updateMatrix();
+  character.pilot?.updateMatrix();
   let riserCursor = 0;
   for (const bank of banks) {
     const {lower,upper,hand,row,side,junction,attach,upperIndex,brakeStart} = bank;
     lower.copy(attach).applyMatrix4(character.body.matrix);
+    if (character.pilot) lower.applyMatrix4(character.pilot.matrix);
     lower.z += row === 0 ? -.035 : .035;
     upper.copy(lower); upper.y += .43; upper.z = junction.z * .55;
     suspensionPositions.setXYZ(upperIndex,upper.x,upper.y,upper.z);
     const arm = character.arms?.[side < 0 ? 0 : 1];
     if(arm) {
       arm.upper.updateMatrix(); arm.lower.updateMatrix();
-      hand.set(0,-.30,-.01).applyMatrix4(arm.lower.matrix)
-        .applyMatrix4(arm.upper.matrix).applyMatrix4(character.body.matrix);
+      if (arm.grip && arm.wrist) {
+        arm.grip.updateMatrix(); arm.wrist.updateMatrix();
+        hand.set(0,0,0).applyMatrix4(arm.grip.matrix).applyMatrix4(arm.wrist.matrix);
+      } else hand.set(0,-.30,-.01);
+      hand.applyMatrix4(arm.lower.matrix).applyMatrix4(arm.upper.matrix).applyMatrix4(character.body.matrix);
+      if (character.pilot) hand.applyMatrix4(character.pilot.matrix);
     } else hand.copy(upper);
     suspensionPositions.setXYZ(brakeStart,hand.x,hand.y,hand.z);
     if(row === 1) toggles[side < 0 ? 0 : 1].position.copy(hand);

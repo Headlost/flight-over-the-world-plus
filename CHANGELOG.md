@@ -7,6 +7,7 @@ Wersja 1.0 była punktem startowym zaimportowanym jako fork wcześniejszego proj
 ### Największe zmiany
 
 - dodano tryb spadochroniarza: stabilny model, sterowanie opadaniem, bezpieczne lądowanie na ulicach i dachach, chodzenie, widok pierwszoosobowy oraz dwa sposoby ponownego startu;
+- dodano naturalny chód i bieg spadochroniarza, chwyt i ciągnięcie linek, ugięcie kolan zależne od siły lądowania oraz edytowalny projekt Blendera z dziewięcioma sekwencjami;
 - dodano rakietę: pionowy start, orbitę Ziemi, sterowanie w przestrzeni, hiperprędkość, planety, atmosfery i powrót na Ziemię;
 - dodano migoczący żółto-pomarańczowy płomień rakiety w atmosferze i niebiesko-turkusowy w kosmosie, zwiększono jej sterowność na Ziemi o 20% oraz zastąpiono bębnowy ton eksplozji warstwowym hukiem, pomrukiem i odłamkami;
 - ustabilizowano kosmiczną kamerę pościgową przy zwykłym locie i w nadprzestrzeni, rozszerzono zakres przybliżenia rolką oraz złagodzono ręczne skręcanie, szczególnie przy hiperprędkości;
@@ -20,6 +21,7 @@ Wersja 1.0 była punktem startowym zaimportowanym jako fork wcześniejszego proj
 - usunięto z interfejsu Guess the region, Fly home i wybór Poland/Europe/World;
 - zastąpiono profile jakości jednym adaptacyjnym profilem wysokiej szczegółowości;
 - naprawiono ponowne ładowanie terenu po wyjściu z lotu i zmianie pojazdu oraz zabezpieczono obsługę nietypowych zdarzeń klawiatury;
+- nowy lot resetuje kamerę: skierowanie widoku w niebo w poprzednim locie nie powoduje już fałszywego komunikatu o braku terenu po zmianie samolotu lub miasta;
 - opisy sterowania w menu i mobilnym Help pokazują teraz wyłącznie klawisze i akcje wybranego pojazdu, w tym osobny profil rakiety w kosmosie;
 - poprawiono streaming kafelków, LOD, kamery, modele, sterowanie dotykowe, muzykę i dźwięki.
 

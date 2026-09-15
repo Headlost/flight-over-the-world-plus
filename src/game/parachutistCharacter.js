@@ -330,6 +330,8 @@ export function createParachutistCharacter() {
   const release = new MeshStandardMaterial({ color: 0xbb251a, roughness: 0.5 });
   const skin = new MeshStandardMaterial({ color: 0xb88669, roughness: 0.83 });
   const face = new MeshStandardMaterial({ color: photoFace ? 0xffffff : 0xb88669, map: photoFace, roughness: 0.87 });
+  skin.name = "parachutist-skin";
+  face.name = "parachutist-face";
   const lenses = new MeshStandardMaterial({ color: 0x080d10, roughness: 0.29, metalness: 0.22, side: DoubleSide });
   const lace = new MeshStandardMaterial({ color: 0x6d706c, roughness: 0.96 });
 
@@ -512,22 +514,32 @@ export function createParachutistCharacter() {
       [-0.18, 0.044, 0.047, -0.003], [-0.273, 0.037, 0.038, -0.004]], side), accent);
     add(lower, loft([[-0.272, 0.037, 0.040, -0.005], [-0.298, 0.038, 0.038, -0.005],
       [-0.313, 0.036, 0.036, -0.007]], 16), webbing);
-    // Padding is segmented across the knuckles; fingers and the bent thumb are
-    // separate shapes but baked into a single leather draw inside this elbow.
-    add(lower, ellipsoid(0, -0.35, -0.010, 0.041, 0.055, 0.026), leather);
-    add(lower, ellipsoid(0, -0.352, -0.028, 0.035, 0.022, 0.014), rubber);
+    // The wrist carries the glove, grip anchor and finger-curl morphs. Keeping
+    // fingers in material batches gives a real changing grip without a draw
+    // call for every finger on every local and remote player.
+    const wrist = new Group();
+    wrist.name = `${side < 0 ? "left" : "right"}-wrist`;
+    wrist.position.y = -0.313;
+    lower.add(wrist);
+    const addGlove = (group, geometry, material) => add(wrist, geometry.translate(0, 0.313, 0), material);
+    addGlove(wrist, ellipsoid(0, -0.35, -0.010, 0.041, 0.055, 0.026), leather);
+    addGlove(wrist, ellipsoid(0, -0.352, -0.028, 0.035, 0.022, 0.014), rubber);
     for (let finger = 0; finger < 4; finger += 1) {
       const x = -0.024 + finger * 0.016;
       const fingerLength = [0.046, 0.055, 0.052, 0.039][finger];
-      add(lower, ellipsoid(x, -0.393 - fingerLength / 2, -0.008,
+      addGlove(wrist, ellipsoid(x, -0.393 - fingerLength / 2, -0.008,
         0.0085, fingerLength / 2, 0.010, 10), leather);
-      add(lower, ellipsoid(x, -0.389, -0.018, 0.0085, 0.014, 0.009, 10), rubber);
-      add(lower, tube([[x - 0.005, -0.406, -0.020], [x + 0.005, -0.406, -0.020]], 0.0012), seam);
+      addGlove(wrist, ellipsoid(x, -0.389, -0.018, 0.0085, 0.014, 0.009, 10), rubber);
+      addGlove(wrist, tube([[x - 0.005, -0.406, -0.020], [x + 0.005, -0.406, -0.020]], 0.0012), seam);
     }
-    add(lower, tube([[side * 0.032, -0.332, -0.015], [side * 0.045, -0.36, -0.027],
+    addGlove(wrist, tube([[side * 0.032, -0.332, -0.015], [side * 0.045, -0.36, -0.027],
       [side * 0.044, -0.386, -0.021]], 0.010, 4), leather);
-    wingBadge(lower, add, silver, accent, 0, -0.333, -0.039, 0.42);
-    arms.push({ upper, lower, side });
+    wingBadge(wrist, addGlove, silver, accent, 0, -0.333, -0.039, 0.42);
+    const grip = new Group();
+    grip.name = `${side < 0 ? "left" : "right"}-toggle-grip`;
+    grip.position.set(0, -0.075, -0.035);
+    wrist.add(grip);
+    arms.push({ upper, lower, wrist, grip, gripSurfaces: [], side });
 
     const thigh = new Group();
     thigh.name = `${side < 0 ? "left" : "right"}-hip`;
@@ -609,6 +621,30 @@ export function createParachutistCharacter() {
       const merged = mergeGeometries(geometries, false);
       for (const geometry of geometries) geometry.dispose();
       const mesh = new Mesh(merged, material);
+      const hand = arms.find(arm => arm.wrist === group);
+      if (hand && (material === leather || material === rubber || material === seam)) {
+        const curled = merged.attributes.position.clone();
+        for (let index = 0; index < curled.count; index += 1) {
+          const distance = Math.max(0, -0.073 - curled.getY(index));
+          const angle = distance / 0.070 * 2.25;
+          if (distance > 0) {
+            const radius = 0.070 / 2.25;
+            curled.setY(index, -0.073 - radius * Math.sin(angle));
+            curled.setZ(index, curled.getZ(index) - radius * (1 - Math.cos(angle)));
+          }
+        }
+        merged.morphAttributes.position = [curled];
+        merged.morphTargetsRelative = false;
+        // Normals follow the curved glove too, keeping highlights smooth.
+        const curledGeometry = merged.clone();
+        curledGeometry.morphAttributes = {};
+        curledGeometry.setAttribute("position", curled);
+        curledGeometry.computeVertexNormals();
+        merged.morphAttributes.normal = [curledGeometry.attributes.normal.clone()];
+        curledGeometry.dispose();
+        mesh.updateMorphTargets();
+        hand.gripSurfaces.push(mesh);
+      }
       mesh.name = `${group.name}-${material === accent ? "accent-panels" : "surface"}`;
       mesh.castShadow = true;
       mesh.receiveShadow = true;

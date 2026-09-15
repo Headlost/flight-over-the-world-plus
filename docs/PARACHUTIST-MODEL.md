@@ -1,5 +1,15 @@
 # Spadochroniarz — model według referencji
 
+## Animacje i projekt Blendera — 15.09.2026
+
+Ruch postaci wyznacza wspólny moduł `src/game/parachutistMotion.js`. Chód i bieg mają naprzemienne podparcie stóp, zginanie kolan, pracę kostek, kołysanie miednicy i przeciwny ruch ramion. **Shift + W** lub ruch do przodu z dotykowym **Faster** włącza bieg. W locie ręce pociągają właściwe uchwyty, palce zaciskają chwyt, a nogi reagują na sterowanie i przygotowanie do przyziemienia. Ugięcie kolan i obniżenie miednicy przy lądowaniu zależą od prędkości opadania zarejestrowanej przed zatrzymaniem kontrolera; korekty wysokości terenu nie odtwarzają ponownie tego uderzenia.
+
+Projekt [parachutist-studio.blend](../art/models/parachutist-studio.blend) zawiera obecną postać gry i model Vanguard z odzyskanym szkieletem oraz dziewięć sekwencji: bezruch, chód, bieg, lot, lewe i prawe sterowanie, hamowanie oraz dwa lądowania. [Instrukcja studia](../art/models/README.md) opisuje odtwarzanie i przebudowę projektu. Linki podążają za rzeczywistymi punktami chwytu; geometria rękawów w widoku pierwszoosobowym zachowuje połączenia bark–łokieć–dłoń.
+
+Końcowa kontrola tej aktualizacji: kompilacja i 183 testy jednostkowe przeszły. Trzy scenariusze przeglądarkowe sprawdziły animacje na natywnej geometrii glTF, kolejne zmiany pojazdów oraz trzy pełne starty po zmianie samolotu i miasta. Testy używają kontrolowanego terenu i nie pobierają sesji z produkcyjnej puli.
+
+## Model i materiały
+
 Postać ma zielono-turkusowy kombinezon z jasnoniebieskimi panelami, kaptur z otwartą twarzą, ciemne gogle, szwy i kieszenie, rękawice, sznurowane buty oraz plecak z uprzężą. Zielono-niebieskie materiały zachowują neutralną fotograficzną fakturę nylonu i mają subtelną emisję, która poprawia czytelność sylwetki na jasnym oraz ciemnym tle bez spłaszczania fałd tkaniny. Szczegóły pasów, klamer, uchwytów i ubioru są łączone w siatki wewnątrz poruszających się przegubów. Obrót łokcia lub kolana przenosi odpowiadającą mu dłoń albo but, a głowa wykonuje subtelny ruch podczas marszu.
 
 Sylwetka dorosłego ma około 1,91 m. Podeszwy w pozycji stojącej znajdują się 0,32 m poniżej początku modelu, zgodnie z istniejącym odstępem kontrolera od rozpoznanego podłoża. Kontroler nadal korzysta z natywnych pomiarów terenu i potwierdzenia kontaktu przy lądowaniu, a po wylądowaniu obsługuje marsz, krawędzie dachów i ponowne wznoszenie. Pozycje nośnych pasów są powiązane z mocowaniami na barkach; linki hamulców i czerwone uchwyty podążają za rękami.
