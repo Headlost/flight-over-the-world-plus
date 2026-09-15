@@ -15,7 +15,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://headlost.github.io/flight-over-the-world-plus/og.jpg" />
     <link rel="icon" href="data:," />
-    <script type="module" crossorigin src="./assets/index-DpQWgi_d.js"></script>
+    <script type="module" crossorigin src="./assets/index-DtEaT49x.js"></script>
     <link rel="modulepreload" crossorigin href="./assets/three-D30tnyVc.js">
     <link rel="modulepreload" crossorigin href="./assets/terrain-D-7WIx4X.js">
     <link rel="modulepreload" crossorigin href="./assets/multiplayer-6Y2Ft8ec.js">
@@ -175,8 +175,8 @@
           <button id="start-btn" type="button">Start</button>
         </div>
         <p id="menu-error"></p>
-          <p class="hint hint-desk"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> steer · Dziki dzik: <kbd>W/S</kbd> loops, <kbd>A/D</kbd> rolls, <kbd>Q/E</kbd> rapid turns, <kbd>Z</kbd> smoke · parachutist: <kbd>Space</kbd> gentle takeoff · rocket: <kbd>R</kbd> orbit, <kbd>Shift</kbd> hyperdrive, <kbd>E</kbd> descend · <kbd>Esc</kbd> pause<br>Right-drag to look around · scroll fully in for first-person · space targets: <kbd>1–9</kbd> planets, <kbd>0</kbd> Galactic Core · <kbd>C</kbd> reset camera</p>
-          <p class="hint hint-touch">For the best controls, rotate your phone sideways · drag the stick to steer</p>
+          <p id="vehicle-controls" class="hint hint-desk" aria-live="polite"><kbd>W/S</kbd> pitch · <kbd>A/D</kbd> bank and turn · <kbd>Shift</kbd> faster · <kbd>Ctrl</kbd> slower · <kbd>Esc</kbd> pause<br>Right-drag to look around · scroll to zoom · <kbd>C</kbd> center camera</p>
+          <p id="vehicle-controls-touch" class="hint hint-touch" aria-live="polite">Landscape recommended · joystick controls pitch and bank · hold Faster / Slower for throttle</p>
       </div>
     </div>
 
@@ -239,7 +239,7 @@
 
     <div id="touch" class="hidden">
       <div class="touch-left-controls">
-        <div id="stick" aria-label="Flight direction control">
+        <div id="stick" aria-label="Aircraft pitch and roll control">
           <span class="stick-key stick-key-up">W</span>
           <span class="stick-key stick-key-left">A</span>
           <span class="stick-key stick-key-right">D</span>
@@ -285,14 +285,11 @@
     <dialog id="touch-help-dialog" class="flight-dialog touch-help-dialog" aria-labelledby="touch-help-title">
       <form method="dialog">
         <div class="dialog-heading"><h2 id="touch-help-title">Mobile controls</h2><button value="close" aria-label="Close help">×</button></div>
-        <p>Keep the middle of the screen clear and use the controls at the edges.</p>
-        <dl class="touch-help-list">
-          <div><dt>Joystick</dt><dd>W/S controls pitch or walking; A/D controls roll or turning.</dd></div>
-          <div><dt>Q / E</dt><dd>Rapid left and right turns for Dziki dzik.</dd></div>
-          <div><dt>Faster / Slower</dt><dd>Hold to change throttle. In space, Faster engages hyperdrive and Slower gives precision control.</dd></div>
+        <p id="touch-help-intro">Controls for the selected aircraft.</p>
+        <dl id="touch-help-list" class="touch-help-list">
+          <div><dt>Joystick</dt><dd>Up and down control pitch; left and right roll and steer the aircraft.</dd></div>
+          <div><dt>Faster / Slower</dt><dd>Hold to increase or reduce throttle.</dd></div>
           <div><dt>Center view</dt><dd>Returns the camera to the default chase view.</dd></div>
-          <div><dt>Parachutist</dt><dd>Use Gentle takeoff or High takeoff on the ground, then steer with the joystick.</dd></div>
-          <div><dt>Spaceflight</dt><dd>Choose a planet in the top selector, approach it, enter orbit, then use the lower action to descend.</dd></div>
           <div><dt>Pause</dt><dd>Stops the flight and opens the pause menu.</dd></div>
         </dl>
         <button value="close">Back to flight</button>
