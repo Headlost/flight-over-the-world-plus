@@ -11,3 +11,11 @@ Parametry ostrości, rozdzielczości i mgły atmosferycznej pozostają takie sam
 Regresje obejmują doczytywanie sąsiada przez wiele klatek, obrót o 180°, pomijany poziom pośredni i kolumnę fizyki. Testy WebGL mierzą piksele podczas przejścia z aktywnym TilesFadePlugin oraz sprawdzają gradient nieba i głębię obiektu na pierwszym planie. Testy nie pobierają map od dostawców i nie stanowią benchmarku rzeczywistej fotogrametrii.
 
 Walidacja: npm run build zakończony poprawnie (119 testów lokalnych); 18 wybranych testów przeglądarkowych terenu, lotu, startu, zmiany kursu, przestrzeni kosmicznej i renderowania przeszło.
+
+## Ponowne starty i pamięć kafelków — 15.09.2026
+
+Dwa niezależne stany pamięci mogły zablokować kolejny lot aż do przeładowania strony. Po błędzie pobierania SDK pozostawiało kafelek w pamięci LRU; samo ustawienie stanu „do pobrania” nie usuwało wpisu, więc kolejna próba nie wysyłała żądania. Ponowienie usuwa teraz wyłącznie błędny wpis przez zwykłe czyszczenie SDK, zwalniając jego poprzedni kontroler pobierania. Prawidłowo załadowane kafelki pozostają dostępne.
+
+Druga blokada występowała po zapełnieniu pamięci poprzednim widokiem. SDK odrzucało żądania nowej mapy przed dodaniem ich do kolejki, a późniejsze zwolnienie pamięci nie budziło mechanizmu `UpdateOnChangePlugin`. Nieruchoma kamera ładowania nie mogła sama wznowić pracy. Renderer zapamiętuje teraz oczekiwanie na miejsce i wznawia przejście drzewa po faktycznym zwolnieniu pojemności; przy nadal pełnej pamięci nie wykonuje ciągłych dodatkowych przejść.
+
+Obie usterki odtworzono najpierw w testach SDK i w przeglądarce: po odpowiedzi HTTP 503 drugie żądanie nie występowało, a po rzeczywistym usunięciu starego terenu z LRU mapa nowego miasta nadal nie była pobierana. Testy sprawdzają ponowne pobieranie i parsowanie, zachowanie udanych wpisów, zerowe pozostałości kolejek oraz start na natywnej geometrii nowego miasta. Osobny scenariusz obejmuje lądowanie spadochroniarza, chód, widok pierwszoosobowy, zmianę samolotu i dwa anulowania ładowania. Cele szczegółowości, rozdzielczość, kamera, mgła, budżety pamięci i bezpośrednie pobieranie kafelków nie zostały zmienione.

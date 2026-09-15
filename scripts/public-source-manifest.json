@@ -39,6 +39,7 @@
     "tests/core.test.js",
     "tests/aerobaticPlane.test.js",
     "tests/terrainView.test.js",
+    "tests/terrain.test.js",
     "tests/googleTileSession.test.js",
     "tests/ionTokens.test.js",
     "tests/monthlyBudget.test.js",
