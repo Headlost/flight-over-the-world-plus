@@ -154,7 +154,7 @@ Szczegółowe granice publikacji opisuje [docs/PUBLIC-SOURCE.md](docs/PUBLIC-SOU
 
 ## Pochodzenie projektu
 
-Pierwsza wersja **Flight Over the World** powstała na bazie otwartego projektu [`bartosz-ciesielski/flight-over-the-world`](https://github.com/bartosz-ciesielski/flight-over-the-world), stworzonego przez Bartosza Ciesielskiego. Dziękujemy autorowi pierwotnej wersji za udostępnienie pracy na licencji MIT.
+Pierwsza wersja **Flight Over the World +** powstała na bazie otwartego projektu [`bartosz-ciesielski/flight-over-the-world`](https://github.com/bartosz-ciesielski/flight-over-the-world), stworzonego przez Bartosza Ciesielskiego. Dziękujemy autorowi pierwotnej wersji za udostępnienie pracy na licencji MIT.
 
 To niezależnie rozwijane repozytorium — nie jest oficjalnym wydaniem pierwotnego projektu ani nie sugeruje partnerstwa czy afiliacji z jego autorem. Oryginalna nota prawna została zachowana w [LICENSE](LICENSE), a informacje o wykorzystanych materiałach i pozostałych autorach znajdują się w [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 

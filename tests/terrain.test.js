@@ -53,3 +53,40 @@ test('a failed terrain root retries even with an unchanged camera and no failed 
   assert.equal(plugin.doTilesNeedUpdate(), false);
   renderer.unregisterPlugin(plugin);
 });
+
+test('cancelled terrain downloads wake an unchanged view exactly once', () => {
+  const renderer = new TerrainRenderer();
+  const plugin = new UpdateOnChangePlugin();
+  renderer.registerPlugin(plugin);
+  const queued = tile();
+  const loading = tile();
+  const loaded = tile();
+  for (const item of [queued, loading, loaded]) {
+    renderer.preprocessNode(item, 'https://terrain.example');
+    renderer.loadingTiles.add(item);
+    renderer.lruCache.add(item, removed => {
+      removed.internal.loadingState = UNLOADED;
+      renderer.loadingTiles.delete(removed);
+    });
+  }
+  queued.internal.loadingState = QUEUED;
+  loading.internal.loadingState = LOADING;
+  loaded.internal.loadingState = LOADED;
+  let updates = 0;
+  renderer.addEventListener('needs-update', () => { updates += 1; });
+  assert.equal(plugin.doTilesNeedUpdate(), true);
+  assert.equal(plugin.doTilesNeedUpdate(), false);
+
+  renderer.stopPendingDownloads();
+
+  assert.equal(queued.internal.loadingState, UNLOADED);
+  assert.equal(loading.internal.loadingState, UNLOADED);
+  assert.equal(loaded.internal.loadingState, LOADED);
+  assert.equal(updates, 1);
+  assert.equal(plugin.doTilesNeedUpdate(), true);
+
+  renderer.stopPendingDownloads();
+  assert.equal(updates, 1);
+  assert.equal(plugin.doTilesNeedUpdate(), false);
+  renderer.unregisterPlugin(plugin);
+});

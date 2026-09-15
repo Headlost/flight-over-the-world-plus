@@ -19,6 +19,8 @@ Wersja 1.0 była punktem startowym zaimportowanym jako fork wcześniejszego proj
 - zakończenie czarnej dziury prowadzi rakietę na farmę Coopera, udostępnia bezkluczowy odnośnik do referencyjnego widoku i pozwala wystartować ponownie;
 - usunięto z interfejsu Guess the region, Fly home i wybór Poland/Europe/World;
 - zastąpiono profile jakości jednym adaptacyjnym profilem wysokiej szczegółowości;
+- naprawiono ponowne ładowanie terenu po wyjściu z lotu i zmianie pojazdu oraz zabezpieczono obsługę nietypowych zdarzeń klawiatury;
+- opisy sterowania w menu i mobilnym Help pokazują teraz wyłącznie klawisze i akcje wybranego pojazdu, w tym osobny profil rakiety w kosmosie;
 - poprawiono streaming kafelków, LOD, kamery, modele, sterowanie dotykowe, muzykę i dźwięki.
 
 Szczegółowy opis funkcji, źródeł grafiki i użytej muzyki znajduje się w [README.md](README.md).

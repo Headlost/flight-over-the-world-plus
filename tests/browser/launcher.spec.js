@@ -469,7 +469,8 @@ test.describe('mobile terrain recovery', () => {
 
     await page.locator('#touch-help').click();
     await expect(page.locator('#touch-help-dialog')).toBeVisible();
-    await expect(page.locator('#touch-help-dialog')).toContainText('Spaceflight');
+    await expect(page.locator('#touch-help-intro')).toHaveText('Rocket controls in space.');
+    await expect(page.locator('#touch-help-list')).toContainText('Destinations');
     await page.getByRole('button',{name:'Back to flight'}).click();
     await expect(page.locator('#touch')).toHaveClass(/show/);
 

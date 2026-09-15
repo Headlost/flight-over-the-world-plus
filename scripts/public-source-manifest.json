@@ -49,6 +49,7 @@
     "tests/broker-only/terrainPoolContinuity.spec.js",
     "tests/broker-only/dzikiDzik.spec.js",
     "tests/broker-only/parachutistModel.spec.js",
+    "tests/broker-only/vehicleSwitch.spec.js",
     "playwright.broker-only.config.js"
   ],
   "notice": "Implementacja pominięta w publicznym eksporcie źródeł. Prawa autorskie pozostają przy właściwych autorach; oznaczenie nie zmienia licencji zależności ani wkładu osób trzecich."
