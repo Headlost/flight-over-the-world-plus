@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Flight Over the World +</title>
+    <meta name="description" content="Flight Over the World +: free flight over photorealistic Earth, planetary surfaces and deep space. Aerobatic aircraft, parachutists and rockets. Single player and multiplayer." />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="Flight Over the World +" />
+    <meta property="og:description" content="Flight Over the World +: fly over photorealistic Earth and into deep space. Aerobatics, parachutist landings, rockets and multiplayer adventures." />
+    <meta property="og:url" content="https://headlost.github.io/flight-over-the-world-plus/" />
+    <meta property="og:image" content="https://headlost.github.io/flight-over-the-world-plus/og.jpg" />
+    <meta property="og:image:alt" content="Flight Over the World + — spaceflight near Saturn" />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://headlost.github.io/flight-over-the-world-plus/og.jpg" />
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="multiplayer-notice" role="alert" aria-live="assertive" hidden></div>
+    <audio id="bgm" autoplay loop playsinline preload="auto" src="./music/reflection.mp3"></audio>
+    <audio id="black-hole-score" playsinline preload="metadata" src="./music/no-time-for-caution.mp3"></audio>
+    <div id="fatal" class="hidden">
+      <div class="fatal-card">
+        <h2>Could not start</h2>
+        <p id="fatal-text"></p>
+        <button id="fatal-ok" type="button">OK</button>
+      </div>
+    </div>
+
+    <div id="loader">
+      <div class="loader-card">
+        <h2>Flight Over the World</h2>
+        <div class="bar"><i id="loader-bar"></i></div>
+        <p id="loader-text">Loading</p>
+      </div>
+    </div>
+
+    <div id="landing">
+      <div class="landing-menu-stack">
+        <div class="menu-card landing-card">
+          <h1 class="brand-logo"><img src="./assets/flight-over-the-world-plus-logo.png" width="2172" height="724" alt="Flight Over the World +" decoding="async" fetchpriority="high" /></h1>
+          <p class="landing-sub">Fly <span class="anywhere-word">anywhere</span>. No account or setup needed.</p>
+          <p id="crash-note" hidden></p>
+          <fieldset id="cesium-access" class="cesium-access">
+            <legend>Terrain access</legend>
+            <div class="cesium-access-choices">
+              <label class="cesium-access-option" for="cesium-access-default">
+                <input id="cesium-access-default" name="cesium-access-mode" type="radio" value="default" checked />
+                <span><strong>Game access</strong><small>Recommended · active by default</small></span>
+              </label>
+              <div class="cesium-custom-row">
+                <label class="cesium-access-option" for="cesium-access-custom">
+                  <input id="cesium-access-custom" name="cesium-access-mode" type="radio" value="custom" aria-controls="cesium-token-fields" aria-expanded="false" />
+                  <span><strong>Use my own Cesium ion token</strong><small>Optional · uses your account quota</small></span>
+                </label>
+                <a href="./cesium-token-guide.html" target="_blank" rel="noopener noreferrer">How to get your own Cesium token?</a>
+              </div>
+            </div>
+            <div id="cesium-token-fields" class="cesium-token-fields" hidden>
+              <label for="cesium-token-input">Your Cesium ion token</label>
+              <input id="cesium-token-input" type="password" maxlength="4096" autocomplete="off" autocapitalize="none" spellcheck="false" inputmode="text" placeholder="Paste your token here" aria-describedby="cesium-token-privacy cesium-access-status" data-1p-ignore="true" data-lpignore="true" />
+              <p id="cesium-token-privacy"><strong>Your token stays in your browser.</strong> The game does not share it with other players or the shared terrain pool. It is kept only in this tab’s <code>sessionStorage</code> and sent directly to Cesium ion for terrain requests.</p>
+            </div>
+            <p id="cesium-access-status" class="cesium-access-status" role="status" aria-live="polite">Default game access is active.</p>
+          </fieldset>
+          <div class="landing-modes">
+            <button id="btn-solo" type="button">Single player</button>
+            <button id="btn-multi" type="button">Multiplayer</button>
+          </div>
+        </div>
+        <button id="music-landing-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
+      </div>
+    </div>
+
+    <div id="lobby" class="hidden">
+      <div class="menu-card lobby-card">
+        <button id="lobby-back" class="back-btn" type="button">‹ Back</button>
+        <h1>Room</h1>
+        <div class="carousel lobby-carousel">
+          <button id="lobby-car-prev" type="button" aria-label="Previous">‹</button>
+          <canvas id="lobby-carousel-canvas"></canvas>
+          <button id="lobby-car-next" type="button" aria-label="Next">›</button>
+        </div>
+        <div class="car-info">
+          <span id="lobby-car-name">Piper PA-28</span>
+          <span id="lobby-car-desc">Light propeller – 170 km/h</span>
+        </div>
+        <p id="lobby-vehicle-lock-status" class="lobby-vehicle-lock-status" role="status" hidden></p>
+        <button id="music-lobby-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
+        <div class="ambient-volume-control">
+          <label for="ambient-lobby-volume">Ambient sounds</label>
+          <output id="ambient-lobby-value" for="ambient-lobby-volume">100%</output>
+          <input id="ambient-lobby-volume" type="range" min="0" max="100" step="1" value="100" title="Engine and wind volume" />
+        </div>
+        <div class="modes lobby-modes single-mode">
+          <button class="mode-card selected" data-mode="free" type="button">
+            <span class="m-name">Free flight</span>
+          </button>
+        </div>
+        <p id="lobby-mode-desc"></p>
+        <div id="lobby-setup">
+          <div id="lobby-scopes" hidden></div>
+          <input id="lobby-city" type="text" placeholder="Starting city… e.g. Paris" autocomplete="off" />
+        </div>
+        <div id="lobby-players" class="lobby-players"></div>
+        <div class="lobby-link-row">
+          <input id="lobby-link" type="text" readonly />
+          <button id="lobby-copy" type="button">Copy link</button>
+        </div>
+        <aside class="lobby-share-rail" aria-label="Room sharing and lobby chat">
+          <section id="lobby-qr" class="lobby-qr" aria-label="QR code for joining this room" hidden>
+            <canvas id="lobby-qr-canvas" role="img" aria-label="Scan this QR code to join the multiplayer room"></canvas>
+            <div class="lobby-qr-info">
+              <strong>Scan to join</strong>
+              <span>Open the room instantly on another device.</span>
+              <span id="lobby-qr-feedback" class="lobby-qr-feedback" role="status" aria-live="polite"></span>
+              <div class="lobby-qr-actions">
+                <button id="lobby-qr-copy" type="button">Copy QR</button>
+              </div>
+            </div>
+          </section>
+          <section id="lobby-chat" class="lobby-chat" aria-label="Lobby chat">
+            <div class="lobby-chat-head"><strong>Lobby chat</strong><span id="lobby-chat-count">0 players</span></div>
+            <div id="lobby-chat-messages" class="lobby-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
+            <form id="lobby-chat-form" class="lobby-chat-form">
+              <label class="sr-only" for="lobby-chat-input">Message to players in the lobby</label>
+              <input id="lobby-chat-input" name="message" type="text" maxlength="280" placeholder="Write a message…" autocomplete="off" />
+              <button type="submit">Send</button>
+            </form>
+          </section>
+        </aside>
+        <p id="lobby-status"></p>
+        <p class="hint lobby-voice-hint">Hold <kbd>T</kbd> to talk – the other player will hear you</p>
+        <button id="lobby-start" type="button">Start</button>
+      </div>
+    </div>
+
+    <div id="menu" class="hidden">
+      <div class="menu-card">
+        <button id="menu-back" class="back-btn" type="button">‹ Back</button>
+        <h1 class="brand-logo"><img src="./assets/flight-over-the-world-plus-logo.png" width="2172" height="724" alt="Flight Over the World +" decoding="async" /></h1>
+
+        <div class="carousel">
+          <button id="car-prev" type="button" aria-label="Previous">‹</button>
+          <canvas id="carousel-canvas"></canvas>
+          <button id="car-next" type="button" aria-label="Next">›</button>
+        </div>
+        <div class="car-info">
+          <span id="car-name">Piper PA-28</span>
+          <span id="car-desc">Light propeller – 170 km/h</span>
+        </div>
+        <button id="music-menu-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
+        <div class="ambient-volume-control">
+          <label for="ambient-menu-volume">Ambient sounds</label>
+          <output id="ambient-menu-value" for="ambient-menu-volume">100%</output>
+          <input id="ambient-menu-volume" type="range" min="0" max="100" step="1" value="100" title="Engine and wind volume" />
+        </div>
+
+        <div class="modes single-mode">
+          <button class="mode-card selected" data-mode="free" type="button">
+            <span class="m-name">Free flight</span>
+          </button>
+        </div>
+        <p id="mode-desc"></p>
+
+        <div class="start-row">
+          <input id="city-input" type="text" placeholder="Starting city… e.g. Paris" autocomplete="off" />
+          <div id="guess-scope" hidden></div>
+          <button id="start-btn" type="button">Start</button>
+        </div>
+        <p id="menu-error"></p>
+          <p class="hint hint-desk"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> steer · Dziki dzik: <kbd>W/S</kbd> loops, <kbd>A/D</kbd> rolls, <kbd>Q/E</kbd> rapid turns, <kbd>Z</kbd> smoke · parachutist: <kbd>Space</kbd> gentle takeoff · rocket: <kbd>R</kbd> orbit, <kbd>Shift</kbd> hyperdrive, <kbd>E</kbd> descend · <kbd>Esc</kbd> pause<br>Right-drag to look around · scroll fully in for first-person · space targets: <kbd>1–9</kbd> planets, <kbd>0</kbd> Galactic Core · <kbd>C</kbd> reset camera</p>
+          <p class="hint hint-touch">For the best controls, rotate your phone sideways · drag the stick to steer</p>
+      </div>
+    </div>
+
+    <div id="pause">
+      <div class="pause-card">
+        <h2>Paused</h2>
+        <button id="btn-resume" type="button">Continue</button>
+        <button id="btn-restart" class="ghost" type="button">Start over</button>
+      </div>
+    </div>
+
+    <div id="mp-wait" class="hidden">
+      <div class="mp-wait-card">
+        <div class="spin" aria-hidden="true"></div>
+        <p id="mp-wait-text">Waiting for players…</p>
+        <button id="mp-wait-lobby" class="ghost" type="button" hidden>Back to lobby</button>
+      </div>
+    </div>
+
+    <div id="guessmap">
+      <div class="gm-card">
+        <div class="gm-head">
+          <span id="gm-score-left"></span>
+          <h2>Where are you?</h2>
+          <span id="gm-score-right"></span>
+        </div>
+        <p class="sub" id="gm-sub">Click a point on the map of Poland</p>
+        <canvas id="gm-canvas"></canvas>
+        <p id="gm-result"></p>
+        <div class="gm-actions">
+          <button id="gm-retry" type="button" style="display: none">Try again</button>
+          <button id="gm-close" class="ghost" type="button" style="display: none">Back to menu</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="voice-ind" class="hidden">Hold T to talk</div>
+
+    <div id="hud">
+      <div id="f-banner">
+        <div class="b-title"></div>
+        <div class="b-sub"></div>
+        <div class="gm-actions" id="banner-actions">
+          <button id="banner-retry" type="button">Try again</button>
+          <button id="banner-menu" class="ghost" type="button">Back to menu</button>
+        </div>
+      </div>
+
+      <div id="f-instruments">
+        <canvas id="g-speed" class="gauge"></canvas>
+        <canvas id="g-alt" class="gauge"></canvas>
+        <canvas id="g-hdg" class="gauge"></canvas>
+      </div>
+
+      <div id="f-center">
+        <div class="f-box" id="f-timer-box"><span class="f-label">Time left</span><span id="f-timer">10:00</span></div>
+        <div class="f-box" id="f-dist-box"><span class="f-label">To target</span><span id="f-dist">–</span></div>
+      </div>
+    </div>
+
+    <div id="touch" class="hidden">
+      <div class="touch-left-controls">
+        <div id="stick" aria-label="Flight direction control">
+          <span class="stick-key stick-key-up">W</span>
+          <span class="stick-key stick-key-left">A</span>
+          <span class="stick-key stick-key-right">D</span>
+          <span class="stick-key stick-key-down">S</span>
+          <div id="stick-knob"></div>
+        </div>
+        <div class="touch-yaw-controls" aria-label="Dziki dzik rapid turns">
+          <button id="touch-yaw-left" class="acro-control" type="button" aria-label="Q · rapid turn left">Q</button>
+          <button id="touch-yaw-right" class="acro-control" type="button" aria-label="E · rapid turn right">E</button>
+        </div>
+      </div>
+      <div class="touch-btns">
+        <button id="touch-boost" type="button">Faster</button>
+        <button id="touch-brake" type="button">Slower</button>
+        <button id="touch-camera" type="button">Center view</button>
+        <button id="touch-pause" type="button">Pause</button>
+        <button id="touch-talk" type="button" hidden>Talk</button>
+      </div>
+      <div id="touch-primary-actions" class="touch-primary-actions" hidden>
+        <button id="touch-action" type="button" hidden>Gentle takeoff</button>
+        <button id="touch-special" type="button" hidden>High takeoff</button>
+        <button id="touch-enter" type="button" hidden>Descend</button>
+      </div>
+    </div>
+
+    <div id="game-tools" hidden aria-label="Game controls">
+      <details id="audio-game-controls" class="audio-game-controls" open>
+        <summary aria-label="Open sound controls" title="Sound controls">🔊</summary>
+        <div class="audio-game-panel">
+          <button id="music-game-toggle" type="button" aria-pressed="false">🔊 Music on</button>
+          <div class="ambient-volume-control">
+            <label for="ambient-game-volume">Ambient sounds</label>
+            <output id="ambient-game-value" for="ambient-game-volume">100%</output>
+            <input id="ambient-game-volume" type="range" min="0" max="100" step="1" value="100" title="Engine and wind volume" />
+          </div>
+        </div>
+      </details>
+      <button id="landscape-toggle" type="button" aria-pressed="false" aria-label="Switch to landscape view" title="Landscape view">↻</button>
+      <button id="touch-help" type="button" aria-haspopup="dialog" aria-controls="touch-help-dialog" title="Mobile controls help">?</button>
+      <button id="acro-smoke-toggle" class="acro-control" type="button" aria-pressed="true">Smoke on · Z</button>
+    </div>
+
+    <dialog id="touch-help-dialog" class="flight-dialog touch-help-dialog" aria-labelledby="touch-help-title">
+      <form method="dialog">
+        <div class="dialog-heading"><h2 id="touch-help-title">Mobile controls</h2><button value="close" aria-label="Close help">×</button></div>
+        <p>Keep the middle of the screen clear and use the controls at the edges.</p>
+        <dl class="touch-help-list">
+          <div><dt>Joystick</dt><dd>W/S controls pitch or walking; A/D controls roll or turning.</dd></div>
+          <div><dt>Q / E</dt><dd>Rapid left and right turns for Dziki dzik.</dd></div>
+          <div><dt>Faster / Slower</dt><dd>Hold to change throttle. In space, Faster engages hyperdrive and Slower gives precision control.</dd></div>
+          <div><dt>Center view</dt><dd>Returns the camera to the default chase view.</dd></div>
+          <div><dt>Parachutist</dt><dd>Use Gentle takeoff or High takeoff on the ground, then steer with the joystick.</dd></div>
+          <div><dt>Spaceflight</dt><dd>Choose a planet in the top selector, approach it, enter orbit, then use the lower action to descend.</dd></div>
+          <div><dt>Pause</dt><dd>Stops the flight and opens the pause menu.</dd></div>
+        </dl>
+        <button value="close">Back to flight</button>
+      </form>
+    </dialog>
+
+    <nav id="space-nav" aria-label="Space navigation" hidden>
+      <div class="space-readout">
+        <strong id="space-mode-label">Earth orbit</strong>
+        <span id="space-target-info">Target Moon</span>
+      </div>
+      <div id="space-targets" aria-label="Choose destination">
+        <button type="button" data-body="Mercury"><kbd>1</kbd> Mercury</button>
+        <button type="button" data-body="Venus"><kbd>2</kbd> Venus</button>
+        <button type="button" data-body="Earth"><kbd>3</kbd> Earth</button>
+        <button type="button" data-body="Moon"><kbd>4</kbd> Moon</button>
+        <button type="button" data-body="Mars"><kbd>5</kbd> Mars</button>
+        <button type="button" data-body="Jupiter"><kbd>6</kbd> Jupiter</button>
+        <button type="button" data-body="Saturn"><kbd>7</kbd> Saturn</button>
+        <button type="button" data-body="Uranus"><kbd>8</kbd> Uranus</button>
+        <button type="button" data-body="Neptune"><kbd>9</kbd> Neptune</button>
+        <button type="button" data-body="Sun" class="hazard-target"><kbd>−</kbd> Sun</button>
+        <button type="button" data-body="Galactic Core" class="hazard-target"><kbd>0</kbd> Galactic Core</button>
+      </div>
+      <button id="space-enter" type="button">Establish orbit to descend</button>
+    </nav>
+
+    <div id="space-action-hint" role="status" aria-live="polite" hidden>
+      <kbd id="space-action-key">R</kbd>
+      <span id="space-action-copy">Enter orbit</span>
+    </div>
+
+    <section id="planet-entry" aria-live="polite" aria-hidden="true">
+      <div class="planet-entry-horizon" aria-hidden="true"></div>
+      <strong id="planet-entry-title">ATMOSPHERIC ENTRY</strong>
+      <span id="planet-entry-detail">Thermal shield active</span>
+    </section>
+
+    <section id="interstellar" aria-live="assertive" aria-hidden="true">
+      <div class="event-horizon-void" aria-hidden="true"></div>
+      <div class="tesseract" aria-hidden="true">
+        <video id="tesseract-video" muted playsinline preload="metadata" poster="./assets/tesseract-poster.jpg" aria-label="Gravitational Tesseract transit">
+          <source src="./assets/tesseract.mp4" type="video/mp4">
+        </video>
+      </div>
+      <div id="transit-countdown" class="transit-countdown" aria-hidden="true">
+        <span>UNKNOWN STRUCTURE IN</span><strong>15</strong>
+      </div>
+      <div id="transit-status" class="interstellar-sub">EVENT HORIZON · NO RETURN</div>
+    </section>
+
+    <aside id="location-arrival" aria-hidden="true">
+      <strong>COOPER FARM · ALBERTA</strong>
+      <span>50°24′23.1″ N · 114°12′15.4″ W · Interstellar filming field</span>
+      <a id="farm-reference" href="https://www.google.com/maps/place/Interstellar+farm/@50.4067956,-114.2067948,582m/data=!3m1!1e3!4m12!1m5!3m4!2zNTDCsDI0JzIzLjEiTiAxMTTCsDEyJzE1LjQiVw!8m2!3d50.406424!4d-114.204275!3m5!1s0x5371cb000edab3e1:0xda2ffa5756ef5f40!8m2!3d50.4064515!4d-114.2041817!16s%2Fg%2F11ww8p8t3p?entry=ttu&amp;g_ep=EgoyMDI2MDkwMi4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener noreferrer">Open reference view of the Interstellar farm</a>
+      <small>Rocket ready · press <kbd>R</kbd> to return to Earth orbit · choose <kbd>0</kbd> in space to revisit the black hole</small>
+    </aside>
+
+    <section id="street-mode" aria-label="Street View" aria-hidden="true">
+      <div id="streetview"></div>
+      <div class="street-mode-hud">
+        <strong id="street-mode-title">Street View</strong>
+        <span id="street-mode-status">Click and drag once, then use W/A/S/D to move and turn.</span>
+        <button id="street-return" type="button">← Return to game <kbd>Esc</kbd> / <kbd>Space</kbd></button>
+      </div>
+    </section>
+
+    <dialog id="street-prompt" class="flight-dialog street-prompt" aria-labelledby="street-prompt-title">
+      <form method="dialog">
+        <div class="dialog-heading"><h2 id="street-prompt-title">Enter Street View?</h2><button value="cancel" aria-label="Close">×</button></div>
+        <p id="street-prompt-copy">Street View will use the closest available street to this landing point.</p>
+        <p class="settings-note"><strong>Controls:</strong> after entering, click and drag the view at least once. Then use W/S to move and A/D to turn. Press Escape or Space to return to the flight.</p>
+        <p id="street-prompt-note" class="settings-note"></p>
+        <div class="street-prompt-actions">
+          <button id="street-enter" value="enter" type="button">Enter Street View</button>
+          <button value="cancel" class="ghost">Stay in flight</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

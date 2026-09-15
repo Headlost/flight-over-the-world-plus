@@ -1,0 +1,19 @@
+node_modules
+dist
+.env
+.env.local
+.env.*.local
+test-results/
+playwright-report/
+.DS_Store
+.netlify
+
+.public-export/
+
+# Private terrain pool state/configuration
+server/*.private.json
+server/*.sqlite*
+server/n8n/*.private.json
+
+# Local, user-confirmed performance checkpoints
+.local-baselines/

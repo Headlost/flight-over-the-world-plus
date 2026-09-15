@@ -1,0 +1,23 @@
+# Dziki dzik
+
+Nowy samolot akrobacyjny opracowano według grafiki dostarczonej przez użytkownika. Model ma czarny lakier, czerwone obramowania i końcówki skrzydeł, grafiki srebrzystego dzika z czerwonym okiem, białe napisy Dziki Dzik, numer 01, przezroczystą kabinę z pilotem, czterołopatowe śmigło oraz stałe podwozie z owiewkami. Przyjęte wymiary to długość 6,8 m i rozpiętość 7,4 m. To model czasu rzeczywistego z geometrią przygotowaną w kodzie, a nie render fotograficzny plakatu.
+
+Grafiki dzika na obu bokach kadłuba i statecznika są lustrzanie symetryczne: pysk i kły wskazują ku śmigłu. Ułożenie sprawdzono na widokach z lewej/prawej strony oraz przez porównanie UV i współrzędnych modelu. Odbicie dotyczy wyłącznie grafiki dzika po lewej stronie; napisy pozostają czytelne.
+
+Sterowanie jest niezależne od zwykłych samolotów. W/S pozwala wykonywać pełne pętle ujemne/dodatnie, A/D beczki w lewo/prawo, Q/E szybkie zwroty sterem kierunku. Dostępne są jednoczesne obroty wielu osi oraz lot odwrócony bez automatycznego poziomowania. Docelowe prędkości kątowe wynoszą 360°/s dla pochylenia, 720°/s dla beczki oraz 8 rad/s dla zwrotu. Odpowiedź sterów narasta płynnie, więc pierwsza pętla od neutralnego steru trwa nieco dłużej niż sekunda. Przelot: 85 m/s; maksimum: 160 m/s; hamowanie: 45 m/s.
+
+Symulacja wykorzystuje quaternion i stały krok 240 Hz. Renderowanie samolotu, płynna kamera oraz przesyłanie i interpolacja pozy multiplayer zachowują pełną orientację przy przechodzeniu przez pion. Wznowienie sesji również zachowuje quaternion. Lekki kontakt z innym graczem nie ogranicza samolotu do kątów zwykłego modelu lotu.
+
+Po ustabilizowaniu pomiaru terenu Dziki dzik rozpoczyna lot na wysokości 180 m nad powierzchnią; w multiplayer wysokość wspólnego startu wyznacza pojazd hosta.
+
+Dwa osobne wyloty emitują lekki biały dym. Z i przycisk Smoke on/off przełączają emisję. Na telefonie dodatkowe przyciski Turn left/right sterują szybkimi zwrotami. Jedna operacja rysowania obsługuje całą pulę dymu: maksymalnie 640 cząstek na komputerze i 384 na telefonie, około 540/360 w ustalonym locie. Gęstość 90/60 par na sekundę ogranicza przerwy pomiędzy smugami podczas szybkiego lotu. Cząstki zanikają po 3 sekundach. Ich rozmiar jest ograniczony do 80 pikseli; wygaszanie przy kamerze i test głębokości chronią widoczność. Dane świata pozostają w precyzji Float64, a przesyłane do GPU pozycje są względne wobec samolotu, co eliminuje jitter wynikający z milionowych współrzędnych Ziemi.
+
+Grafika dzika jest oryginalnym zasobem wygenerowanym przez image_gen, z prawdziwym kanałem alpha. Ostateczny prompt i ścieżka: public/textures/dziki-dzik/LIVERY.md. Tekstury napisów powstają raz przy budowaniu modelu; nie są malowane ponownie podczas lotu.
+
+Cztery współdzielone tekstury oznakowania pozostają w cache przez czas otwarcia gry. Usunięcie pojedynczego samolotu zwalnia jego geometrię i materiały, a zachowuje te oznaczone tekstury. Dzięki temu zniknięcie innego gracza nie wymusza ponownego wysyłania grafiki aktywnego samolotu do GPU. Zwykłe tekstury pozostałych modeli zachowują dotychczasowe zwalnianie.
+
+Statyczne, nieprzezroczyste części są scalone według wspólnych materiałów. Pełny model z oznaczeniami ma 31 siatek zamiast 98: oszczędność 67 operacji rysowania. Zachowano 25 180 trójkątów, pozycje, normalne, UV, materiały i przezroczyste oznaczenia. Porównanie hashy atrybutów i obrysu potwierdziło zgodność przed/po. Śmigło i powierzchnie sterowe nadal poruszają się niezależnie.
+
+Parametry jakości i implementacja doczytywania terenu pozostają zgodne ze znanym dobrym punktem działania z 14.09.2026. Nowy samolot nie zmienia errorTarget, rozdzielczości, cache ani dostępu do sesji terenu. Testy akrobacji i dymu nie korzystają z produkcyjnej puli kont. Wyniki w przeglądarce headless sprawdzają poprawność; nie stanowią benchmarku FPS na sprzęcie gracza.
+
+Walidacja: npm run build i 140 testów lokalnych przeszły. Trzy scenariusze przeglądarkowe brokera potwierdziły rzeczywiste parsowanie terenu, pełne obroty w sześciu kierunkach, zgodność orientacji widocznego modelu, płynną kamerę, ograniczony dym oraz pozy i wznowienie multiplayer. Siedem wybranych regresji wcześniejszych pojazdów również przeszło. Nie zużywano produkcyjnych sesji kont. Kontroler akrobacji i jego testy są pominięte w publicznym eksporcie tak jak dotychczasowy prywatny kontroler lotu.

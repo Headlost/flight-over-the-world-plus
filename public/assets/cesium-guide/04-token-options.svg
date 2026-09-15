@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Schemat minimalnych uprawnień tokenu</title>
+  <desc id="desc">Formularz tokenu z włączonym tylko assets read, wybranym assetem 2275207 i opcjonalnym Allowed URL.</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07182a"/><stop offset="1" stop-color="#123b58"/></linearGradient><filter id="s"><feDropShadow dy="16" stdDeviation="16" flood-opacity=".4"/></filter></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <text x="54" y="62" fill="#9fc6df" font-family="system-ui, sans-serif" font-size="22">SCHEMAT INTERFEJSU — MINIMALNE UPRAWNIENIA</text>
+  <g filter="url(#s)"><rect x="140" y="91" width="920" height="540" rx="20" fill="#f7fbff"/></g>
+  <text x="188" y="148" fill="#17364c" font-family="system-ui, sans-serif" font-size="33" font-weight="800">Create access token</text>
+  <text x="188" y="188" fill="#597487" font-family="system-ui, sans-serif" font-size="18">Nazwa: Flight Over the World — browser</text>
+  <line x1="188" y1="214" x2="1012" y2="214" stroke="#ccdbe4" stroke-width="2"/>
+  <text x="188" y="254" fill="#17364c" font-family="system-ui, sans-serif" font-size="21" font-weight="800">Scopes</text>
+  <g font-family="system-ui, sans-serif" font-size="18">
+    <rect x="188" y="276" width="28" height="28" rx="5" fill="#178aa0"/><path d="m195 290 7 7 13-16" fill="none" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><text x="230" y="297" fill="#17364c" font-weight="800">assets:read</text><text x="385" y="297" fill="#3c7a50" font-weight="700">WŁĄCZONE — jedyne wymagane</text>
+    <rect x="188" y="321" width="28" height="28" rx="5" fill="#fff" stroke="#8fa6b6" stroke-width="2"/><text x="230" y="342" fill="#6d8291">assets:write</text><text x="385" y="342" fill="#a34d42">wyłączone</text>
+    <rect x="188" y="366" width="28" height="28" rx="5" fill="#fff" stroke="#8fa6b6" stroke-width="2"/><text x="230" y="387" fill="#6d8291">profile / tokens / list</text><text x="455" y="387" fill="#a34d42">wyłączone</text>
+  </g>
+  <g transform="translate(188 430)">
+    <text y="0" fill="#17364c" font-family="system-ui, sans-serif" font-size="21" font-weight="800">Assets</text>
+    <rect y="18" width="366" height="54" rx="10" fill="#e5f3f6" stroke="#64a9b6"/>
+    <circle cx="28" cy="45" r="12" fill="#198ba1"/><path d="m22 45 5 5 9-12" fill="none" stroke="white" stroke-width="3"/>
+    <text x="51" y="43" fill="#17364c" font-family="system-ui, sans-serif" font-size="17" font-weight="700">Google Photorealistic 3D Tiles</text><text x="51" y="63" fill="#587487" font-family="ui-monospace, monospace" font-size="14">2275207</text>
+    <text x="416" y="0" fill="#17364c" font-family="system-ui, sans-serif" font-size="21" font-weight="800">Allowed URLs (opcjonalne)</text>
+    <rect x="416" y="18" width="408" height="54" rx="10" fill="#fff" stroke="#9fb4c3" stroke-width="2"/>
+    <text x="434" y="51" fill="#526f82" font-family="ui-monospace, monospace" font-size="15">https://example.github.io</text>
+  </g>
+  <rect x="756" y="548" width="256" height="54" rx="11" fill="#087f95"/>
+  <text x="884" y="582" text-anchor="middle" fill="#fff" font-family="system-ui, sans-serif" font-size="21" font-weight="800">Create token</text>
+  <rect x="694" y="262" width="318" height="115" rx="14" fill="#eaf8e4" stroke="#7eae68" stroke-width="2"/>
+  <text x="853" y="301" text-anchor="middle" fill="#315a25" font-family="system-ui, sans-serif" font-size="22" font-weight="900">Zasada minimum</text>
+  <text x="853" y="332" text-anchor="middle" fill="#456a39" font-family="system-ui, sans-serif" font-size="17">Tylko odczyt jednego assetu</text>
+  <text x="853" y="356" text-anchor="middle" fill="#456a39" font-family="system-ui, sans-serif" font-size="17">Brak prywatnych scope</text>
+</svg>

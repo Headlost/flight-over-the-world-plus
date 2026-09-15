@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Schemat własnego tokenu na ekranie startowym gry</title>
+  <desc id="desc">Schemat ekranu Flight Over the World z domyślnym dostępem, opcją własnego tokenu i przyciskami Single player oraz Multiplayer.</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#06101f"/><stop offset="1" stop-color="#163d5d"/></linearGradient><radialGradient id="glow"><stop stop-color="#e9b95d" stop-opacity=".22"/><stop offset="1" stop-color="#e9b95d" stop-opacity="0"/></radialGradient><filter id="s"><feDropShadow dy="20" stdDeviation="20" flood-opacity=".45"/></filter></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/><circle cx="950" cy="110" r="360" fill="url(#glow)"/>
+  <text x="54" y="62" fill="#9fc6df" font-family="system-ui, sans-serif" font-size="22">SCHEMAT PRZYSZŁEGO EKRANU GRY — NIE ZRZUT APLIKACJI</text>
+  <g filter="url(#s)"><rect x="244" y="82" width="712" height="548" rx="20" fill="#0d2136" stroke="#517693" stroke-width="2"/></g>
+  <text x="600" y="150" text-anchor="middle" fill="#fff1d6" font-family="Georgia, serif" font-size="43" font-weight="800">Flight Over the World +</text>
+  <text x="600" y="183" text-anchor="middle" fill="#c1d0dc" font-family="system-ui, sans-serif" font-size="18">Wybierz sposób dostępu do mapy, a następnie tryb gry</text>
+  <g font-family="system-ui, sans-serif">
+    <rect x="292" y="220" width="26" height="26" rx="13" fill="#1aa0b5"/><circle cx="305" cy="233" r="5" fill="white"/>
+    <text x="334" y="240" fill="#f1f6fa" font-size="20" font-weight="750">Domyślny dostęp do mapy</text>
+    <text x="696" y="240" fill="#79d99b" font-size="17" font-weight="700">aktywny</text>
+    <rect x="292" y="268" width="26" height="26" rx="13" fill="none" stroke="#7592a8" stroke-width="2"/>
+    <text x="334" y="288" fill="#f1f6fa" font-size="20" font-weight="750">Use my own Cesium token</text>
+    <text x="735" y="288" fill="#67d8e8" font-size="16" text-decoration="underline">Jak uzyskać własny token?</text>
+    <rect x="292" y="314" width="616" height="58" rx="10" fill="#071523" stroke="#52728a" stroke-width="2"/>
+    <text x="316" y="349" fill="#829bad" font-family="ui-monospace, monospace" font-size="18">••••••••••••••••••••••••••••••••••••••</text>
+    <text x="292" y="401" fill="#a9bdcc" font-size="15">Pole włącza się dopiero po wybraniu własnego tokenu.</text>
+    <rect x="292" y="446" width="616" height="66" rx="11" fill="#244662" stroke="#6488a5" stroke-width="2"/>
+    <text x="600" y="487" text-anchor="middle" fill="#fff" font-size="23" font-weight="800">Single player</text>
+    <rect x="292" y="530" width="616" height="66" rx="11" fill="#244662" stroke="#6488a5" stroke-width="2"/>
+    <text x="600" y="571" text-anchor="middle" fill="#fff" font-size="23" font-weight="800">Multiplayer</text>
+  </g>
+  <rect x="774" y="387" width="240" height="48" rx="24" fill="#fff2d8" stroke="#e3ad49"/>
+  <text x="894" y="418" text-anchor="middle" fill="#68450d" font-family="system-ui, sans-serif" font-size="17" font-weight="800">Puste pole = dostęp domyślny</text>
+</svg>

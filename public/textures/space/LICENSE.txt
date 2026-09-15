@@ -1,0 +1,8 @@
+Solar System Scope planet, Sun, Moon, ring, cloud and Milky Way textures
+Source: https://www.solarsystemscope.com/textures/
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+License text: https://creativecommons.org/licenses/by/4.0/
+
+The source states that the maps are based on NASA elevation and imagery data,
+with colour adjustments and gap filling by Solar System Scope. The files in
+this directory are the source's 2K downloads, renamed for use by the game.

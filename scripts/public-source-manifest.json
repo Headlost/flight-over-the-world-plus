@@ -1,0 +1,55 @@
+{
+  "omittedModules": [
+    {
+      "path": "src/main.js",
+      "description": "Orkiestracja rozgrywki i integracja prywatnych modułów."
+    },
+    {
+      "path": "src/game/plane.js",
+      "description": "Kontroler lotu i ruchu pojazdów."
+    },
+    {
+      "path": "src/game/aerobaticPlane.js",
+      "description": "Kontroler pełnego lotu akrobacyjnego."
+    },
+    {
+      "path": "src/game/terrainRenderer.js",
+      "description": "Optymalizacja doczytywania i pomiarów terenu."
+    },
+    {
+      "path": "src/game/googleTileSession.js",
+      "description": "Obsługa sesji dostępu do terenu."
+    },
+    {
+      "path": "src/game/rotatingIonAuth.js",
+      "description": "Integracja autoryzacji terenu."
+    },
+    {
+      "path": "src/game/ionTokens.js",
+      "description": "Kolejka i rotacja danych dostępu."
+    },
+    {
+      "path": "src/game/terrainPoolAuth.js",
+      "description": "Integracja kontrolowanej wspólnej puli sesji."
+    }
+  ],
+  "excludedPaths": [
+    "AGENTS.md",
+    ".github/workflows/pages.yml",
+    "tests/core.test.js",
+    "tests/aerobaticPlane.test.js",
+    "tests/terrainView.test.js",
+    "tests/googleTileSession.test.js",
+    "tests/ionTokens.test.js",
+    "tests/monthlyBudget.test.js",
+    "tests/poolServer.test.js",
+    "tests/terrainPoolAuth.test.js",
+    "tests/browser/terrain-continuity.spec.js",
+    "tests/broker-only/terrainPoolStart.spec.js",
+    "tests/broker-only/terrainPoolContinuity.spec.js",
+    "tests/broker-only/dzikiDzik.spec.js",
+    "tests/broker-only/parachutistModel.spec.js",
+    "playwright.broker-only.config.js"
+  ],
+  "notice": "Implementacja pominięta w publicznym eksporcie źródeł. Prawa autorskie pozostają przy właściwych autorach; oznaczenie nie zmienia licencji zależności ani wkładu osób trzecich."
+}
