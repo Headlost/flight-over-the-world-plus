@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Schemat sekcji Access Tokens</title>
+  <desc id="desc">Schemat panelu Cesium ion z zaznaczoną sekcją Access Tokens i przyciskiem Create token.</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07182a"/><stop offset="1" stop-color="#123b58"/></linearGradient><filter id="s"><feDropShadow dy="16" stdDeviation="16" flood-opacity=".35"/></filter></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <text x="54" y="62" fill="#9fc6df" font-family="system-ui, sans-serif" font-size="22">SCHEMAT INTERFEJSU — ACCESS TOKENS</text>
+  <g filter="url(#s)"><rect x="80" y="94" width="1040" height="520" rx="20" fill="#f7fbff"/><rect x="80" y="94" width="250" height="520" rx="20" fill="#102b43"/><rect x="306" y="94" width="24" height="520" fill="#102b43"/></g>
+  <text x="125" y="155" fill="#e8f8ff" font-family="system-ui, sans-serif" font-size="28" font-weight="800">ion dashboard</text>
+  <text x="137" y="221" fill="#a9c7d9" font-family="system-ui, sans-serif" font-size="20">Asset Depot</text>
+  <text x="137" y="269" fill="#a9c7d9" font-family="system-ui, sans-serif" font-size="20">My Assets</text>
+  <rect x="106" y="289" width="198" height="50" rx="9" fill="#1b516e"/>
+  <text x="137" y="322" fill="#fff" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Access Tokens</text>
+  <text x="378" y="157" fill="#17364c" font-family="system-ui, sans-serif" font-size="34" font-weight="800">Access Tokens</text>
+  <text x="378" y="194" fill="#5a7487" font-family="system-ui, sans-serif" font-size="19">Oddzielny token dla każdej aplikacji ułatwia kontrolę użycia.</text>
+  <rect x="852" y="126" width="196" height="54" rx="10" fill="#087f95"/>
+  <text x="950" y="161" text-anchor="middle" fill="#fff" font-family="system-ui, sans-serif" font-size="21" font-weight="800">+ Create token</text>
+  <g transform="translate(378 238)">
+    <rect width="670" height="72" rx="10" fill="#e6f0f6"/>
+    <text x="24" y="31" fill="#25485f" font-family="system-ui, sans-serif" font-size="16" font-weight="700">NAME</text><text x="350" y="31" fill="#25485f" font-family="system-ui, sans-serif" font-size="16" font-weight="700">SCOPE</text><text x="548" y="31" fill="#25485f" font-family="system-ui, sans-serif" font-size="16" font-weight="700">LAST USED</text>
+    <rect y="88" width="670" height="84" rx="10" fill="#fff" stroke="#c5d5df"/>
+    <text x="24" y="122" fill="#17364c" font-family="system-ui, sans-serif" font-size="20" font-weight="700">Development token</text><text x="24" y="149" fill="#708899" font-family="system-ui, sans-serif" font-size="16">Nie używaj go w tej grze</text>
+    <rect x="350" y="111" width="128" height="34" rx="17" fill="#ffe5ce"/><text x="414" y="134" text-anchor="middle" fill="#8a481d" font-family="system-ui, sans-serif" font-size="16">wiele scope</text>
+    <text x="548" y="132" fill="#708899" font-family="system-ui, sans-serif" font-size="17">—</text>
+  </g>
+  <path d="M970 210v-26" stroke="#f0a93c" stroke-width="7" stroke-linecap="round"/><path d="m954 199 16 16 16-16" fill="none" stroke="#f0a93c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="642" y="508" width="360" height="54" rx="27" fill="#e8f7db" stroke="#82bd62"/>
+  <text x="822" y="542" text-anchor="middle" fill="#315a25" font-family="system-ui, sans-serif" font-size="20" font-weight="800">Utwórz nowy token tylko dla gry</text>
+</svg>

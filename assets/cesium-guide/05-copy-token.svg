@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Schemat kopiowania tokenu</title>
+  <desc id="desc">Zamaskowana przykładowa wartość tokenu i przycisk Copy, bez prawdziwych danych.</desc>
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#07182a"/><stop offset="1" stop-color="#123b58"/></linearGradient><filter id="s"><feDropShadow dy="16" stdDeviation="16" flood-opacity=".4"/></filter></defs>
+  <rect width="1200" height="675" fill="url(#bg)"/>
+  <text x="54" y="62" fill="#9fc6df" font-family="system-ui, sans-serif" font-size="22">SCHEMAT INTERFEJSU — TOKEN JEST CELOWO ZAMASKOWANY</text>
+  <g filter="url(#s)"><rect x="150" y="112" width="900" height="450" rx="22" fill="#f7fbff"/></g>
+  <circle cx="228" cy="188" r="34" fill="#58bf83"/><path d="m211 188 12 13 24-30" fill="none" stroke="white" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="283" y="181" fill="#17364c" font-family="system-ui, sans-serif" font-size="31" font-weight="850">Token został utworzony</text>
+  <text x="283" y="216" fill="#607b8d" font-family="system-ui, sans-serif" font-size="19">Skopiuj go i przejdź bezpośrednio do gry.</text>
+  <text x="202" y="284" fill="#17364c" font-family="system-ui, sans-serif" font-size="18" font-weight="800">ACCESS TOKEN</text>
+  <rect x="202" y="306" width="648" height="66" rx="10" fill="#edf3f7" stroke="#a9bdca" stroke-width="2"/>
+  <text x="226" y="347" fill="#38566b" font-family="ui-monospace, monospace" font-size="20">eyJ••••••••••••••••.••••••••••.••••••••••</text>
+  <rect x="866" y="306" width="132" height="66" rx="10" fill="#087f95"/>
+  <text x="932" y="347" text-anchor="middle" fill="white" font-family="system-ui, sans-serif" font-size="21" font-weight="800">Copy</text>
+  <g transform="translate(202 413)">
+    <rect width="796" height="94" rx="12" fill="#fff2db" stroke="#d89b3d"/>
+    <path d="M31 65 53 24l22 41Z" fill="#e8a130"/><text x="53" y="57" text-anchor="middle" fill="#4d3108" font-family="system-ui, sans-serif" font-size="24" font-weight="900">!</text>
+    <text x="96" y="39" fill="#67420d" font-family="system-ui, sans-serif" font-size="19" font-weight="800">Nie publikuj wartości tokenu.</text>
+    <text x="96" y="68" fill="#7b581f" font-family="system-ui, sans-serif" font-size="17">Nie umieszczaj jej w screenach, kodzie, README, commicie ani czacie.</text>
+  </g>
+  <path d="M929 290c0-44-24-70-64-70" fill="none" stroke="#f0a93c" stroke-width="7" stroke-linecap="round"/><path d="m877 205-18 15 18 15" fill="none" stroke="#f0a93c" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

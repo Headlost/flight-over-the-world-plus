@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Bezpieczna instrukcja utworzenia własnego tokenu Cesium ion do Flight Over the World +." />
+    <title>Jak uzyskać własny token Cesium ion?</title>
+    <style>
+      :root { color-scheme: dark; --bg:#071424; --card:#10243b; --line:#355c7d; --ink:#f3f7fb; --muted:#b9c9d8; --cyan:#4bd5e7; --gold:#f4bf62; --good:#67d391; --warn:#ffcc73; }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body { margin:0; background:radial-gradient(circle at 80% 0,#173654 0,transparent 38%),var(--bg); color:var(--ink); font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif; }
+      main { width:min(980px,calc(100% - 28px)); margin:auto; padding:42px 0 72px; }
+      h1 { max-width:760px; margin:0 0 12px; font-size:clamp(32px,6vw,58px); line-height:1.05; letter-spacing:-.035em; }
+      h2 { margin:0 0 10px; font-size:clamp(23px,4vw,34px); line-height:1.2; }
+      p { margin:8px 0 16px; }
+      a { color:var(--cyan); }
+      code { padding:.12em .35em; border:1px solid #50708b; border-radius:5px; background:#06111f; color:#fff0c9; }
+      .lead { max-width:760px; color:var(--muted); font-size:18px; }
+      .notice,.security { margin:24px 0; padding:16px 18px; border:1px solid var(--line); border-radius:12px; background:#0b1d31dd; }
+      .notice strong { color:var(--gold); }
+      .security { border-color:#b97d2866; background:#291c0eaa; }
+      .security strong { color:var(--warn); }
+      nav { display:flex; flex-wrap:wrap; gap:8px; margin:26px 0 34px; }
+      nav a { padding:7px 11px; border:1px solid var(--line); border-radius:999px; background:#10243b; text-decoration:none; font-size:14px; }
+      .step { margin:0 0 28px; padding:24px; border:1px solid #31526d; border-radius:18px; background:linear-gradient(145deg,#112942e8,#0b1d31e8); box-shadow:0 18px 60px #0003; }
+      .step-number { display:inline-grid; width:34px; height:34px; margin-right:8px; place-items:center; border-radius:50%; background:var(--cyan); color:#06202a; font-weight:900; vertical-align:middle; }
+      .step img { display:block; width:100%; height:auto; margin-top:18px; border:1px solid #47708f; border-radius:12px; background:#09182a; }
+      ul,ol { padding-left:24px; }
+      li { margin:5px 0; }
+      .minimal { color:var(--good); font-weight:750; }
+      footer { margin-top:42px; padding-top:24px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+      @media (max-width:600px) { main{width:min(100% - 18px,980px);padding-top:24px}.step{padding:16px;border-radius:14px}nav{margin-bottom:24px} }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Jak uzyskać własny token Cesium ion?</h1>
+      <p class="lead">Domyślny dostęp do mapy pozostaje aktywny. Własny token jest opcjonalny i korzysta z limitu Twojego konta Cesium ion.</p>
+      <div class="notice"><strong>Ważne:</strong> obrazy poniżej są czytelnymi schematami, nie zrzutami prawdziwego konta. Panel Cesium może wyglądać nieco inaczej.</div>
+      <nav aria-label="Kroki instrukcji">
+        <a href="#konto">1. Konto</a><a href="#asset">2. Asset</a><a href="#token">3. Token</a><a href="#uprawnienia">4. Uprawnienia</a><a href="#kopiowanie">5. Kopiowanie</a><a href="#gra">6. Gra</a>
+      </nav>
+
+      <section class="step" id="konto">
+        <h2><span class="step-number">1</span> Załóż konto lub zaloguj się</h2>
+        <ol><li>Otwórz <a href="https://ion.cesium.com/" target="_blank" rel="noopener noreferrer">ion.cesium.com</a>.</li><li>Wybierz <strong>Create account / Sign up</strong> albo <strong>Sign in</strong>.</li><li>Po weryfikacji przejdź do panelu ion.</li></ol>
+        <img src="./assets/cesium-guide/01-account.svg" alt="Schemat logowania i tworzenia konta Cesium ion" />
+      </section>
+
+      <section class="step" id="asset">
+        <h2><span class="step-number">2</span> Dodaj Photorealistic 3D Tiles</h2>
+        <ol><li>Otwórz <strong>Asset Depot</strong>.</li><li>Wyszukaj <strong>Google Photorealistic 3D Tiles</strong>.</li><li>Sprawdź identyfikator <code>2275207</code> i wybierz <strong>Add to my assets</strong>.</li></ol>
+        <p>Jeśli asset jest już w <strong>My Assets</strong>, nie dodawaj go ponownie.</p>
+        <img src="./assets/cesium-guide/02-add-asset.svg" alt="Schemat dodawania Google Photorealistic 3D Tiles, asset 2275207" />
+      </section>
+
+      <section class="step" id="token">
+        <h2><span class="step-number">3</span> Utwórz osobny token</h2>
+        <ol><li>Przejdź do <strong>Access Tokens</strong>.</li><li>Wybierz <strong>Create token</strong>.</li><li>Nazwij go np. <code>Flight Over the World — browser</code>.</li></ol>
+        <img src="./assets/cesium-guide/03-access-tokens.svg" alt="Schemat sekcji Access Tokens" />
+      </section>
+
+      <section class="step" id="uprawnienia">
+        <h2><span class="step-number">4</span> Nadaj minimalne uprawnienia</h2>
+        <ul><li class="minimal">Włącz tylko <code>assets:read</code>.</li><li>Nie włączaj uprawnień zapisu, profilu ani zarządzania tokenami.</li><li><code>geocode</code> nie jest tej grze potrzebne.</li><li>Jeśli jest dostępne <strong>Selected assets</strong>, wybierz wyłącznie asset <code>2275207</code>.</li></ul>
+        <p>Opcjonalnie ustaw <strong>Allowed URLs</strong> na origin <code>https://headlost.github.io</code> (bez ścieżki projektu). Przeglądarka przekazuje ten origin przy żądaniu do Cesium; wpis ze ścieżką mógłby dać 403. Ograniczenie domeny obejmuje też jej inne ścieżki, dlatego wybierz równocześnie tylko asset <code>2275207</code> i zakres <code>assets:read</code>. Dla lokalnego Vite można dodać <code>http://127.0.0.1:5173</code>.</p>
+        <img src="./assets/cesium-guide/04-token-options.svg" alt="Schemat tokenu z zaznaczonym wyłącznie assets read" />
+      </section>
+
+      <section class="step" id="kopiowanie">
+        <h2><span class="step-number">5</span> Utwórz i skopiuj token</h2>
+        <ol><li>Zatwierdź formularz.</li><li>Użyj przycisku <strong>Copy</strong>.</li><li>Nie publikuj wartości w kodzie, repozytorium, czacie ani na screenach.</li></ol>
+        <img src="./assets/cesium-guide/05-copy-token.svg" alt="Schemat kopiowania zamaskowanego tokenu" />
+      </section>
+
+      <section class="step" id="gra">
+        <h2><span class="step-number">6</span> Wpisz token na ekranie gry</h2>
+        <ol><li>Na ekranie startowym wybierz <strong>Use my own Cesium token</strong>.</li><li>Wklej token w zamaskowane pole.</li><li>Uruchom <strong>Single player</strong> albo <strong>Multiplayer</strong>.</li></ol>
+        <p>Bez zaznaczenia tej opcji gra nadal korzysta z domyślnego dostępu.</p>
+        <img src="./assets/cesium-guide/06-game-entry.svg" alt="Schemat pola tokenu obok wyboru Single player i Multiplayer" />
+      </section>
+
+      <div class="security"><strong>Twój token pozostaje w Twojej przeglądarce:</strong> gra nie udostępnia go innym graczom ani wspólnej puli operatora. Zapisuje go wyłącznie w <code>sessionStorage</code> bieżącej karty i wysyła bezpośrednio do Cesium ion w żądaniach terenu; nigdy nie zapisuje go w <code>localStorage</code>. Po zakończeniu sesji karty przeglądarka usuwa ten zapis. Token aplikacji przeglądarkowej nie jest jednak tajnym hasłem, dlatego używaj tylko <code>assets:read</code>, ogranicz asset i URL, obserwuj limity, a ujawniony token natychmiast unieważnij.</div>
+
+      <h2>Gdy mapa się nie otwiera</h2>
+      <ul><li><strong>401:</strong> token jest błędny lub cofnięty.</li><li><strong>403:</strong> sprawdź asset 2275207, <code>assets:read</code> i Allowed URLs.</li><li><strong>402/429:</strong> sprawdź limit konta; dodatkowy token na tym samym koncie nie zwiększa limitu.</li></ul>
+
+      <footer>Oficjalne materiały: <a href="https://cesium.com/learn/ion/cesium-ion-access-tokens/" target="_blank" rel="noopener noreferrer">Access Tokens</a> · <a href="https://cesium.com/learn/cesiumjs-learn/cesiumjs-photorealistic-3d-tiles/" target="_blank" rel="noopener noreferrer">Photorealistic 3D Tiles</a> · <a href="https://cesium.com/learn/ion/optimizing-quotas/" target="_blank" rel="noopener noreferrer">Optimizing quotas</a></footer>
+    </main>
+  </body>
+</html>
