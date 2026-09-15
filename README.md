@@ -48,7 +48,7 @@ Kliknij obraz, aby otworzyć go w pełnym rozmiarze.
 
 ## Opcjonalny własny token Cesium
 
-Na ekranie startowym, obok wyboru **Single Player / Multiplayer**, można pozostawić zalecany dostęp domyślny albo wybrać **Use my Cesium token** i wkleić własny token Cesium ion. Własny token korzysta z limitu przypisanego do konta użytkownika; nie jest wymagany do zwykłego uruchomienia gry.
+Na ekranie startowym, obok wyboru **Single Player / Multiplayer**, można pozostawić zalecany dostęp domyślny albo wybrać **Use my own Cesium ion token** i wkleić własny token Cesium ion. Własny token korzysta z limitu przypisanego do konta użytkownika; nie jest wymagany do zwykłego uruchomienia gry.
 
 Bezpieczna konfiguracja w skrócie:
 
@@ -57,10 +57,11 @@ Bezpieczna konfiguracja w skrócie:
 3. nadaj mu tylko publiczne uprawnienie **`assets:read`** i, jeśli to możliwe, ogranicz go do assetu `2275207` oraz adresu strony;
 4. wklej token w pole na ekranie startowym — nigdy do kodu, pliku `.env`, commita, zgłoszenia ani zrzutu ekranu.
 
-Pełna instrukcja ze schematami:
+Pełna instrukcja z aktualnymi, zanonimizowanymi zrzutami ekranu i żółtymi
+strzałkami przy uzupełnianych polach:
 
 - [Jak uzyskać własny token Cesium — dokumentacja](docs/CESIUM-TOKEN.md)
-- [Jak uzyskać własny token Cesium — wersja dostępna w grze](public/cesium-token-guide.html)
+- [Jak uzyskać własny token Cesium — wersja dostępna w grze](https://headlost.github.io/flight-over-the-world-plus/cesium-token-guide.html)
 
 Token aplikacji internetowej jest widoczny dla przeglądarki i nie powinien mieć prywatnych uprawnień. Gra **nie udostępnia własnego tokenu innym graczom ani nie przekazuje go do wspólnej puli operatora**. Zapisuje go wyłącznie w `sessionStorage` bieżącej karty i wysyła bezpośrednio do Cesium ion w żądaniach potrzebnych do wyświetlenia terenu. Po zakończeniu sesji karty przeglądarka usuwa ten zapis. W razie ujawnienia token należy unieważnić w panelu Cesium ion.
 

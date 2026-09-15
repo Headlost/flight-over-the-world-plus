@@ -7,6 +7,15 @@ The first version from which this project developed was based on
 created by Bartosz Ciesielski and distributed under the MIT License.
 The original copyright and permission notice are preserved in [LICENSE](LICENSE).
 
+## Cesium ion interface screenshots
+
+The token guide includes permanently privacy-redacted screenshots of the
+Cesium ion website for instructional purposes. Cesium ion, the Cesium logo,
+the depicted interface, and related marks belong to Cesium GS, Inc. Personal
+data, verification values, CAPTCHA content, and access-token values have been
+replaced in the published derivatives. This independent project is not
+affiliated with or endorsed by Cesium GS, Inc.
+
 ## Black-hole rendering
 
 The compact Schwarzschild ray integrator and thin accretion-disk profile in
