@@ -4,7 +4,7 @@ Nowy samolot akrobacyjny opracowano według grafiki dostarczonej przez użytkown
 
 Grafiki dzika na obu bokach kadłuba i statecznika są lustrzanie symetryczne: pysk i kły wskazują ku śmigłu. Ułożenie sprawdzono na widokach z lewej/prawej strony oraz przez porównanie UV i współrzędnych modelu. Odbicie dotyczy wyłącznie grafiki dzika po lewej stronie; napisy pozostają czytelne.
 
-Sterowanie jest niezależne od zwykłych samolotów. W/S pozwala wykonywać pełne pętle ujemne/dodatnie, A/D beczki w lewo/prawo, Q/E szybkie zwroty sterem kierunku. Dostępne są jednoczesne obroty wielu osi oraz lot odwrócony bez automatycznego poziomowania. Docelowe prędkości kątowe wynoszą 360°/s dla pochylenia, 720°/s dla beczki oraz 8 rad/s dla zwrotu. Odpowiedź sterów narasta płynnie, więc pierwsza pętla od neutralnego steru trwa nieco dłużej niż sekunda. Przelot: 85 m/s; maksimum: 160 m/s; hamowanie: 45 m/s.
+Sterowanie jest niezależne od zwykłych samolotów. W/S pozwala wykonywać pełne pętle ujemne/dodatnie, A/D beczki w lewo/prawo, Q/E szybkie zwroty sterem kierunku. Dostępne są jednoczesne obroty wielu osi oraz lot odwrócony bez automatycznego poziomowania. Docelowe prędkości kątowe wynoszą 360°/s dla pochylenia, 720°/s dla beczki oraz 8 rad/s dla zwrotu. Odpowiedź sterów narasta płynnie, więc pierwsza pętla od neutralnego steru trwa nieco dłużej niż sekunda. Przelot: 260 km/h (ok. 72,2 m/s); maksimum: 160 m/s (576 km/h); hamowanie: 45 m/s.
 
 Symulacja wykorzystuje quaternion i stały krok 240 Hz. Renderowanie samolotu, płynna kamera oraz przesyłanie i interpolacja pozy multiplayer zachowują pełną orientację przy przechodzeniu przez pion. Wznowienie sesji również zachowuje quaternion. Lekki kontakt z innym graczem nie ogranicza samolotu do kątów zwykłego modelu lotu.
 

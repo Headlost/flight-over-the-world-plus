@@ -117,6 +117,39 @@ test("flight grips curl onto toggles and steering or braking lowers the appropri
   } finally { disposeModel(character.pilot); }
 });
 
+test("raised flight grips sit above the helmet and elbows flex outward on both sides", () => {
+  const character = createParachutistCharacter();
+  const shoulder = new Vector3();
+  const elbow = new Vector3();
+  const hand = new Vector3();
+  const head = new Vector3();
+  try {
+    const neutral = sampleParachutistPose({ state: "airborne", time: 0 });
+    applyParachutistPose(character, neutral);
+    character.pilot.updateMatrixWorld(true);
+    character.headGroup.getWorldPosition(head);
+    for (const arm of character.arms) {
+      arm.upper.getWorldPosition(shoulder);
+      arm.lower.getWorldPosition(elbow);
+      arm.grip.getWorldPosition(hand);
+      assert.ok(hand.y > head.y + 0.08, "neutral hand must hold its brake toggle above the helmet");
+      assert.ok(Math.abs(elbow.x) > Math.abs(hand.x) + 0.05,
+        "elbow must flare outside the glove rather than folding backward or across the chest");
+      assert.ok(elbow.y > shoulder.y + 0.07 && elbow.y < hand.y - 0.07,
+        "raised upper and lower arm should form a continuous upward bend");
+    }
+    const pulled = sampleParachutistPose({ state: "airborne", steering: 1, time: 0 });
+    applyParachutistPose(character, pulled);
+    character.pilot.updateMatrixWorld(true);
+    character.arms[1].grip.getWorldPosition(hand);
+    assert.ok(hand.y < head.y - 0.20,
+      "steering must pull the right toggle and hand down from above the head");
+    character.arms[1].lower.getWorldPosition(elbow);
+    assert.ok(Math.abs(elbow.x) > Math.abs(hand.x),
+      "elbow must remain outside the hand during a deep line pull");
+  } finally { disposeModel(character.pilot); }
+});
+
 test("landing absorbs actual impact with a deeper knee bend and returns to planted standing posture", () => {
   const character = createParachutistCharacter();
   try {

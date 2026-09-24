@@ -70,7 +70,8 @@ export function parachutistLandingCompression(impact = 0, time = -1) {
 }
 
 // Resolve a two-bone limb with an anatomical bend plane. A negative knee sign
-// guarantees that calves fold backwards; elbows always flex forwards.
+// guarantees that calves fold backwards; the elbow pole places each elbow
+// outside its hand, so the forearm folds naturally toward the brake toggle.
 function solveLimb(target, poleX, poleY, poleZ, upperLength, lowerLength, bendSign, upper, lower) {
   const length = clamp(target.length(), Math.abs(upperLength - lowerLength) + 0.001,
     upperLength + lowerLength - 0.0001);
@@ -226,11 +227,14 @@ export function sampleParachutistPose(input = {}, pose = createParachutistPose()
       const pull = clamp(brake * 0.83 + Math.max(0, steering * arm.side) * 0.77 + preparation * 0.16);
       arm.pull = pull;
       arm.grip = 1;
-      // Toggle targets travel down beside the shoulder. The elbow points
-      // outwards/down, and both arm segments reach the same physical grip.
-      point.set(arm.side * (0.085 + pull * 0.015), 0.31 - pull * 0.37,
-        -0.17 + pull * 0.025 + breathe * 0.003);
-      solveLimb(point, arm.side, -0.40, 0.04, UPPER_ARM, FOREARM, 1, arm.upper, arm.lower);
+      // Neutral flight: both gloves hold the brake toggles above the helmet.
+      // A steering/brake pull lowers only its own glove and the attached line.
+      // The target is measured from the shoulder, not the body's origin.
+      point.set(arm.side * (0.13 - pull * 0.025), 0.46 - pull * 0.72,
+        -0.10 - pull * 0.045 + breathe * 0.003);
+      // The pole points laterally so the elbows stay outside the hands. A
+      // forward-only pole folds the raised arms the wrong way at the elbow.
+      solveLimb(point, arm.side * 0.85, 0.08, -0.20, UPPER_ARM, FOREARM, 1, arm.upper, arm.lower);
       eulerQuaternion(arm.wrist, -0.12 - pull * 0.14, arm.side * 0.10, arm.side * 0.06);
     }
   }

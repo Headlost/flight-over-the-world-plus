@@ -262,10 +262,10 @@ function roundedLens(x, y, z, width = 0.068, height = 0.037) {
   return { geometry, rim: points };
 }
 
-function sleeveStripe(rings, side, angularWidth = 0.4) {
+function sleeveStripe(rings, side, angularWidth = 0.4, angularOffset = 0) {
   const positions = [], uv = [], indices = [];
   rings.forEach(([y, rx, rz, cz = 0], i) => {
-    const centre = side > 0 ? -0.78 : Math.PI + 0.78;
+    const centre = (side > 0 ? -0.78 : Math.PI + 0.78) + side * angularOffset;
     for (const edge of [-1, 1]) {
       const a = centre + edge * angularWidth / 2;
       positions.push(Math.cos(a) * (rx + 0.0035), y, Math.sin(a) * (rz + 0.0035) + cz);
@@ -322,6 +322,17 @@ export function createParachutistCharacter() {
     side: DoubleSide,
   });
   accent.name = "parachutist-suit-accent-blue";
+  // The imported body has a charcoal suit with red/white shoulder panels and
+  // bare forearms. These small articulated garment parts reproduce that look
+  // without trying to deform the source's unrigged, torso-connected sleeves.
+  const armSleeve = new MeshStandardMaterial({
+    ...textile, color: 0x494d50, roughness: 0.95, side: DoubleSide,
+  });
+  armSleeve.name = "parachutist-arm-sleeve-gray";
+  const armPiping = new MeshStandardMaterial({
+    ...textile, color: 0xe2e0dc, roughness: 0.91, side: DoubleSide,
+  });
+  armPiping.name = "parachutist-arm-piping-white";
   const webbing = new MeshStandardMaterial({ ...textile, color: 0x101315, roughness: 0.95, side: DoubleSide });
   const seam = new MeshStandardMaterial({ color: 0x353b3c, roughness: 0.89 });
   const leather = new MeshStandardMaterial({ color: 0x111415, roughness: 0.59 });
@@ -497,10 +508,14 @@ export function createParachutistCharacter() {
     body.add(upper);
     add(upper, loft([[0.045, 0.040, 0.047, 0], [0, 0.074, 0.079, 0],
       [-0.08, 0.072, 0.075, 0.004], [-0.17, 0.062, 0.068, 0.005],
-      [-0.26, 0.054, 0.061, 0.004], [-0.33, 0.047, 0.052, 0]], 20, 0.065, side), fabric);
+      [-0.26, 0.054, 0.061, 0.004], [-0.33, 0.047, 0.052, 0]], 20, 0.065, side), armSleeve);
     add(upper, sleeveStripe([[0.013, 0.071, 0.078], [-0.055, 0.073, 0.076, 0.003],
       [-0.15, 0.065, 0.070, 0.005], [-0.25, 0.055, 0.062, 0.004],
-      [-0.326, 0.047, 0.052]], side), accent);
+      [-0.326, 0.047, 0.052]], side, 0.90), accent);
+    add(upper, sleeveStripe([[0.012, 0.073, 0.080], [-0.055, 0.075, 0.078, 0.003],
+      [-0.15, 0.067, 0.072, 0.005], [-0.25, 0.057, 0.064, 0.004],
+      [-0.325, 0.049, 0.054]], side, 0.13, 0.55), armPiping);
+    add(upper, ellipsoid(side * 0.047, -0.055, -0.040, 0.030, 0.083, 0.023), accent);
     add(upper, tube([[side * 0.025, -0.081, -0.069], [side * 0.024, -0.14, -0.060],
       [side * 0.010, -0.21, -0.061]], 0.0022), seam);
     const lower = new Group();
@@ -508,10 +523,11 @@ export function createParachutistCharacter() {
     lower.position.y = -0.33;
     upper.add(lower);
     add(lower, loft([[0.013, 0.046, 0.052, 0], [-0.027, 0.054, 0.058, 0],
-      [-0.095, 0.050, 0.052, -0.002], [-0.17, 0.043, 0.047, -0.003],
-      [-0.245, 0.037, 0.039, -0.004], [-0.297, 0.036, 0.035, -0.005]], 20, 0.08, -side), fabric);
-    add(lower, sleeveStripe([[-0.012, 0.052, 0.057], [-0.09, 0.051, 0.054, -0.002],
-      [-0.18, 0.044, 0.047, -0.003], [-0.273, 0.037, 0.038, -0.004]], side), accent);
+      [-0.09, 0.050, 0.052, -0.002], [-0.14, 0.045, 0.047, -0.003]], 20, 0.08, -side), armSleeve);
+    add(lower, loft([[-0.132, 0.044, 0.047, -0.003], [-0.17, 0.043, 0.047, -0.003],
+      [-0.245, 0.037, 0.039, -0.004], [-0.297, 0.036, 0.035, -0.005]], 20, 0.02), skin);
+    add(lower, loft([[-0.125, 0.047, 0.049, -0.003], [-0.143, 0.047, 0.049, -0.003],
+      [-0.155, 0.043, 0.047, -0.003]], 16), webbing);
     add(lower, loft([[-0.272, 0.037, 0.040, -0.005], [-0.298, 0.038, 0.038, -0.005],
       [-0.313, 0.036, 0.036, -0.007]], 16), webbing);
     // The wrist carries the glove, grip anchor and finger-curl morphs. Keeping

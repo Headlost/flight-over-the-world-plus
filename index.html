@@ -65,9 +65,47 @@
             </div>
             <p id="cesium-access-status" class="cesium-access-status" role="status" aria-live="polite">Default game access is active.</p>
           </fieldset>
+          <fieldset id="input-method" class="input-method">
+            <legend>Controls</legend>
+            <div class="input-method-choices">
+              <label class="input-method-option" for="input-keyboard">
+                <input id="input-keyboard" name="input-method" type="radio" value="keyboard" checked data-gamepad-nav-right="#input-gamepad" />
+                <span><strong>Keyboard &amp; mouse</strong><small>W/A/S/D flight controls and mouse camera</small></span>
+              </label>
+              <label class="input-method-option" for="input-gamepad">
+                <input id="input-gamepad" name="input-method" type="radio" value="gamepad" aria-controls="gamepad-panel" aria-expanded="false" data-gamepad-nav-left="#input-keyboard" />
+                <span><strong>Gamepad</strong><small>USB or Bluetooth controllers available to this browser</small></span>
+              </label>
+            </div>
+            <div id="gamepad-panel" class="gamepad-panel" hidden>
+              <p id="gamepad-status" class="gamepad-status" role="status" aria-live="polite">Connect or pair a controller, then press any button or move a stick.</p>
+              <ul id="gamepad-list" class="gamepad-list" aria-label="Detected gamepads"></ul>
+              <div class="gamepad-settings">
+                <label for="gamepad-layout">Button labels
+                  <select id="gamepad-layout">
+                    <option value="auto">Automatic</option>
+                    <option value="standard">Xbox / PlayStation positions</option>
+                    <option value="nintendo">Nintendo positions</option>
+                  </select>
+                </label>
+                <label for="gamepad-deadzone">Stick dead zone <output id="gamepad-deadzone-value" for="gamepad-deadzone">14%</output>
+                  <input id="gamepad-deadzone" type="range" min="5" max="35" step="1" value="14" />
+                </label>
+                <div class="gamepad-vibration-row">
+                  <label class="gamepad-check" for="gamepad-vibration"><input id="gamepad-vibration" type="checkbox" checked /> Vibration</label>
+                  <label for="gamepad-vibration-strength">Strength <output id="gamepad-vibration-value" for="gamepad-vibration-strength">70%</output>
+                    <input id="gamepad-vibration-strength" type="range" min="0" max="100" step="5" value="70" />
+                  </label>
+                  <button id="gamepad-vibration-test" class="ghost" type="button">Test vibration</button>
+                </div>
+              </div>
+              <p id="gamepad-map" class="gamepad-map">Left stick or D-pad navigates menus and steers in flight · right stick moves the camera · triggers change speed · left bumper holds voice chat · right bumper opens Street View · switch back to the game window to leave external Street View · Y/A control the aerobatic rudder · bottom face button confirms · right face button goes back.</p>
+              <p class="gamepad-privacy-note">Browsers reveal an already connected or paired controller only after you use it. Keyboard and mouse remain available as a fallback.</p>
+            </div>
+          </fieldset>
           <div class="landing-modes">
-            <button id="btn-solo" type="button">Single player</button>
-            <button id="btn-multi" type="button">Multiplayer</button>
+            <button id="btn-solo" type="button" data-gamepad-nav-right="#btn-multi">Single player</button>
+            <button id="btn-multi" type="button" data-gamepad-nav-left="#btn-solo">Multiplayer</button>
           </div>
         </div>
         <button id="music-landing-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
@@ -76,16 +114,16 @@
 
     <div id="lobby" class="hidden">
       <div class="menu-card lobby-card">
-        <button id="lobby-back" class="back-btn" type="button">‹ Back</button>
+        <button id="lobby-back" class="back-btn" type="button" data-gamepad-back>‹ Back</button>
         <h1>Room</h1>
         <div class="carousel lobby-carousel">
-          <button id="lobby-car-prev" type="button" aria-label="Previous">‹</button>
+          <button id="lobby-car-prev" type="button" aria-label="Previous" data-gamepad-nav-right="#lobby-car-next">‹</button>
           <canvas id="lobby-carousel-canvas"></canvas>
-          <button id="lobby-car-next" type="button" aria-label="Next">›</button>
+          <button id="lobby-car-next" type="button" aria-label="Next" data-gamepad-nav-left="#lobby-car-prev">›</button>
         </div>
         <div class="car-info">
-          <span id="lobby-car-name">Piper PA-28</span>
-          <span id="lobby-car-desc">Light propeller – 170 km/h</span>
+          <span id="lobby-car-name">Mooney M20M</span>
+          <span id="lobby-car-desc">Single-engine aircraft · cruise 220, max 450 km/h</span>
         </div>
         <p id="lobby-vehicle-lock-status" class="lobby-vehicle-lock-status" role="status" hidden></p>
         <button id="music-lobby-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
@@ -102,7 +140,7 @@
         <p id="lobby-mode-desc"></p>
         <div id="lobby-setup">
           <div id="lobby-scopes" hidden></div>
-          <input id="lobby-city" type="text" placeholder="Starting city… e.g. Paris" autocomplete="off" />
+          <input id="lobby-city" type="text" placeholder="Starting city… e.g. Paris" autocomplete="off" data-gamepad-keyboard data-gamepad-submit-target="#lobby-start" />
         </div>
         <div id="lobby-players" class="lobby-players"></div>
         <div class="lobby-link-row">
@@ -126,30 +164,30 @@
             <div id="lobby-chat-messages" class="lobby-chat-messages" role="log" aria-live="polite" aria-relevant="additions"></div>
             <form id="lobby-chat-form" class="lobby-chat-form">
               <label class="sr-only" for="lobby-chat-input">Message to players in the lobby</label>
-              <input id="lobby-chat-input" name="message" type="text" maxlength="280" placeholder="Write a message…" autocomplete="off" />
+              <input id="lobby-chat-input" name="message" type="text" maxlength="280" placeholder="Write a message…" autocomplete="off" data-gamepad-keyboard data-gamepad-submit-target="#lobby-chat-form button[type=submit]" />
               <button type="submit">Send</button>
             </form>
           </section>
         </aside>
         <p id="lobby-status"></p>
-        <p class="hint lobby-voice-hint">Hold <kbd>T</kbd> to talk – the other player will hear you</p>
+        <p class="hint lobby-voice-hint">Hold <kbd>T</kbd> or the left bumper (<kbd>LB</kbd>/<kbd>L1</kbd>/<kbd>L</kbd>) to talk – the other player will hear you</p>
         <button id="lobby-start" type="button">Start</button>
       </div>
     </div>
 
     <div id="menu" class="hidden">
       <div class="menu-card">
-        <button id="menu-back" class="back-btn" type="button">‹ Back</button>
+        <button id="menu-back" class="back-btn" type="button" data-gamepad-back>‹ Back</button>
         <h1 class="brand-logo"><img src="./assets/flight-over-the-world-plus-logo.png" width="2172" height="724" alt="Flight Over the World +" decoding="async" /></h1>
 
         <div class="carousel">
-          <button id="car-prev" type="button" aria-label="Previous">‹</button>
+          <button id="car-prev" type="button" aria-label="Previous" data-gamepad-nav-right="#car-next">‹</button>
           <canvas id="carousel-canvas"></canvas>
-          <button id="car-next" type="button" aria-label="Next">›</button>
+          <button id="car-next" type="button" aria-label="Next" data-gamepad-nav-left="#car-prev">›</button>
         </div>
         <div class="car-info">
-          <span id="car-name">Piper PA-28</span>
-          <span id="car-desc">Light propeller – 170 km/h</span>
+          <span id="car-name">Mooney M20M</span>
+          <span id="car-desc">Single-engine aircraft · cruise 220, max 450 km/h</span>
         </div>
         <button id="music-menu-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
         <div class="ambient-volume-control">
@@ -166,12 +204,13 @@
         <p id="mode-desc"></p>
 
         <div class="start-row">
-          <input id="city-input" type="text" placeholder="Starting city… e.g. Paris" autocomplete="off" />
+          <input id="city-input" type="text" placeholder="Starting city… e.g. Paris" autocomplete="off" data-gamepad-keyboard data-gamepad-submit-target="#start-btn" />
           <div id="guess-scope" hidden></div>
           <button id="start-btn" type="button">Start</button>
         </div>
         <p id="menu-error"></p>
           <p id="vehicle-controls" class="hint hint-desk" aria-live="polite"><kbd>W/S</kbd> pitch · <kbd>A/D</kbd> bank and turn · <kbd>Shift</kbd> faster · <kbd>Ctrl</kbd> slower · <kbd>Esc</kbd> pause<br>Right-drag to look around · scroll to zoom · <kbd>C</kbd> center camera</p>
+          <p id="vehicle-controls-gamepad" class="hint hint-gamepad" aria-live="polite" hidden>Left stick pitch and steer · triggers faster/slower · right stick camera · face buttons action/center · Menu pauses</p>
           <p id="vehicle-controls-touch" class="hint hint-touch" aria-live="polite">Landscape recommended · joystick controls pitch and bank · hold Faster / Slower for throttle</p>
       </div>
     </div>
@@ -179,8 +218,14 @@
     <div id="pause">
       <div class="pause-card">
         <h2>Paused</h2>
-        <button id="btn-resume" type="button">Continue</button>
+        <button id="btn-resume" type="button" data-gamepad-back>Continue</button>
         <button id="btn-restart" class="ghost" type="button">Start over</button>
+        <button id="music-pause-toggle" class="menu-music-toggle" type="button" aria-pressed="false">🔊 Music on</button>
+        <div class="ambient-volume-control">
+          <label for="ambient-pause-volume">Ambient sounds</label>
+          <output id="ambient-pause-value" for="ambient-pause-volume">100%</output>
+          <input id="ambient-pause-volume" type="range" min="0" max="100" step="1" value="100" title="Engine and wind volume" />
+        </div>
       </div>
     </div>
 
@@ -275,7 +320,7 @@
       </details>
       <button id="landscape-toggle" type="button" aria-pressed="false" aria-label="Switch to landscape view" title="Landscape view">↻</button>
       <button id="touch-help" type="button" aria-haspopup="dialog" aria-controls="touch-help-dialog" title="Mobile controls help">?</button>
-      <button id="acro-smoke-toggle" class="acro-control" type="button" aria-pressed="true">Smoke on · Z</button>
+      <button id="acro-smoke-toggle" class="acro-control" type="button" aria-pressed="true">Contrails on · Z</button>
     </div>
 
     <dialog id="touch-help-dialog" class="flight-dialog touch-help-dialog" aria-labelledby="touch-help-title">
@@ -318,6 +363,10 @@
       <span id="space-action-copy">Enter orbit</span>
     </div>
 
+    <div id="black-hole-sound-prompt" role="status" aria-live="polite" hidden>
+      <button type="button" aria-label="Turn on music and ambient sounds">Sound On</button>
+    </div>
+
     <section id="planet-entry" aria-live="polite" aria-hidden="true">
       <div class="planet-entry-horizon" aria-hidden="true"></div>
       <strong id="planet-entry-title">ATMOSPHERIC ENTRY</strong>
@@ -348,7 +397,7 @@
       <div id="streetview"></div>
       <div class="street-mode-hud">
         <strong id="street-mode-title">Street View</strong>
-        <span id="street-mode-status">Click and drag once, then use W/A/S/D to move and turn.</span>
+        <span id="street-mode-status">Use Google Maps controls in the separate window. Close that window or return here to resume.</span>
         <button id="street-return" type="button">← Return to game <kbd>Esc</kbd> / <kbd>Space</kbd></button>
       </div>
     </section>
@@ -357,12 +406,35 @@
       <form method="dialog">
         <div class="dialog-heading"><h2 id="street-prompt-title">Enter Street View?</h2><button value="cancel" aria-label="Close">×</button></div>
         <p id="street-prompt-copy">Street View will use the closest available street to this landing point.</p>
-        <p class="settings-note"><strong>Controls:</strong> after entering, click and drag the view at least once. Then use W/S to move and A/D to turn. Press Escape or Space to return to the flight.</p>
+        <p class="settings-note"><strong>Controls:</strong> click to move and drag to look around in Google Maps. Close its window or switch back to the game to return to flight.</p>
         <p id="street-prompt-note" class="settings-note"></p>
         <div class="street-prompt-actions">
           <button id="street-enter" value="enter" type="button">Enter Street View</button>
           <button value="cancel" class="ghost">Stay in flight</button>
         </div>
+      </form>
+    </dialog>
+
+    <dialog id="gamepad-keyboard" class="flight-dialog gamepad-keyboard-dialog" aria-labelledby="gamepad-keyboard-title">
+      <form method="dialog">
+        <div class="dialog-heading">
+          <div>
+            <h2 id="gamepad-keyboard-title">Gamepad keyboard</h2>
+            <p id="gamepad-keyboard-target" class="gamepad-keyboard-target">Text input</p>
+          </div>
+          <button type="button" value="cancel" data-gamepad-keyboard-action="cancel" aria-label="Cancel text entry">×</button>
+        </div>
+        <output id="gamepad-keyboard-preview" class="gamepad-keyboard-preview" aria-live="polite">&nbsp;</output>
+        <div id="gamepad-keyboard-rows" class="gamepad-keyboard-rows" aria-label="On-screen keyboard"></div>
+        <div class="gamepad-keyboard-actions">
+          <button type="button" data-gamepad-keyboard-action="shift" aria-pressed="false">Aa</button>
+          <button type="button" data-gamepad-keyboard-action="space">Space</button>
+          <button type="button" data-gamepad-keyboard-action="backspace">⌫ Backspace</button>
+          <button type="button" data-gamepad-keyboard-action="clear" class="ghost">Clear</button>
+          <button type="button" data-gamepad-keyboard-action="done">Done</button>
+          <button type="button" value="cancel" data-gamepad-keyboard-action="cancel" class="ghost">Cancel</button>
+        </div>
+        <p id="gamepad-keyboard-hint" class="settings-note">Left stick or D-pad: move · A / Cross: select · B / Circle: cancel</p>
       </form>
     </dialog>
 

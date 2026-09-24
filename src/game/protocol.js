@@ -1,6 +1,7 @@
 const TYPES = new Set(['hello','bye','welcome','roster','scope','mode','city','plane','name','chat','ready','talk','presence','moderate','muted','removed','resume','bump','snapped','go','rematch','start','pose','guess','done','roundEnd']);
 const GUEST_TYPES = new Set(['hello','bye','plane','name','chat','ready','talk','presence','moderate','bump','snapped','rematch','pose','guess','done']);
-const PLANES = new Set(['pa28','q400','citation','jet','rocket','parachutist','dzikiDzik']);
+// The Free Flight controller and model are retained locally but archived from play.
+const PLANES = new Set(['mooney','boeing737','a380','ac130','b2','jet','rocket','parachutist','dzikiDzik']);
 const PLAYER_ROLES = new Set(['admin','leader','player']);
 const finite = (n, low, high) => typeof n === 'number' && Number.isFinite(n) && n >= low && n <= high;
 const location = d => finite(d.lat,-90,90) && finite(d.lon,-180,180);

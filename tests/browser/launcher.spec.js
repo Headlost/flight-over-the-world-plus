@@ -54,7 +54,7 @@ async function flushMultiplayerControls(clients) {
   throw new Error('Multiplayer control messages did not settle');
 }
 
-async function startFixtureRound(clients, vehicle = 'pa28', release = true) {
+async function startFixtureRound(clients, vehicle = 'mooney', release = true) {
   await Promise.all(clients.map(async (client,index) => {
     await client.page.goto('/');
     await expect.poll(() => client.page.evaluate(() => !!window.__game)).toBe(true);
@@ -109,6 +109,27 @@ test('online launcher defaults to game access; adaptive rendering persists', asy
   await page.locator('#settings-toggle').click();
   await expect(page.locator('#adaptive')).not.toBeChecked();
   expect(errors).toEqual([]);
+});
+
+test('opening the page selects keyboard controls and enables music even after both were turned off', async ({page}) => {
+  test.setTimeout(90000);
+  await page.goto('/', {waitUntil: 'domcontentloaded'});
+  await expect(page.locator('#input-keyboard')).toBeChecked();
+  await expect(page.locator('#music-landing-toggle')).toHaveText('🔊 Music on');
+
+  await page.locator('#input-gamepad').check();
+  await page.locator('#music-landing-toggle').click();
+  await expect(page.locator('#input-gamepad')).toBeChecked();
+  await expect(page.locator('#music-landing-toggle')).toHaveText('🔇 Music off');
+
+  await page.reload({waitUntil: 'domcontentloaded'});
+  await expect(page.locator('#input-keyboard')).toBeChecked();
+  await expect(page.locator('#input-gamepad')).not.toBeChecked();
+  await expect(page.locator('#music-landing-toggle')).toHaveText('🔊 Music on');
+  await expect.poll(() => page.evaluate(() => ({
+    mode: window.__dbg.gamepad.preferences.mode,
+    muted: window.__bgm.muted,
+  }))).toEqual({mode: 'keyboard', muted: false});
 });
 
 test('a custom Cesium token stays in the tab, is confirmed to the player and overrides configured game tokens', async ({page}) => {
@@ -294,7 +315,7 @@ test('single player recovers from a terrain timeout and can start successive air
   await page.clock.install();
   await page.locator('#btn-solo').click();
   await page.locator('#car-next').click();
-  await expect(page.locator('#car-name')).toHaveText('Dash 8 Q400');
+  await expect(page.locator('#car-name')).toHaveText('Boeing 737-800');
   await page.locator('#city-input').fill('52.249558, 20.985260');
   await page.evaluate(() => window.__testTerrainLoading(null));
   await page.locator('#start-btn').click();
@@ -306,7 +327,7 @@ test('single player recovers from a terrain timeout and can start successive air
   await expect(page.locator('#fatal')).toHaveClass(/hidden/);
   expect(await page.evaluate(() => sessionStorage.getItem('fotw_starting'))).toBeNull();
 
-  for (const name of ['Dash 8 Q400', 'Cessna Citation']) {
+  for (const name of ['Boeing 737-800', 'Airbus A380']) {
     await page.evaluate(() => window.__testTerrainLoading(20));
     await page.locator('#start-btn').click();
     await page.clock.runFor(2500);
@@ -316,8 +337,39 @@ test('single player recovers from a terrain timeout and can start successive air
     await page.locator('#btn-restart').click();
     await expect(page.locator('#car-name')).toHaveText(name);
     await expect(page.locator('#start-btn')).toBeEnabled();
-    if (name === 'Dash 8 Q400') await page.locator('#car-next').click();
+    if (name === 'Boeing 737-800') await page.locator('#car-next').click();
   }
+  expect(errors).toEqual([]);
+});
+
+test('a parachutist starts over high terrain when the exact departure ray falls through a mesh seam', async ({page}) => {
+  test.setTimeout(30000);
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto('/');
+  await expect.poll(() => page.evaluate(() => !!window.__game)).toBe(true);
+  await page.locator('#btn-solo').click();
+  await chooseVehicle(page, 'Parachutist');
+  await page.locator('#city-input').fill('27.9881, 86.9250');
+  await page.evaluate(() => window.__testTerrainLoading(8000, {centerHoleRadius: 15}));
+  await page.locator('#start-btn').click();
+
+  await expect(page.locator('#menu')).toBeHidden({timeout: 12000});
+  await expect.poll(() => page.evaluate(() => ({
+    controller: window.__game?.plane?.constructor?.name,
+    ground: Math.round(window.__dbg?.groundAlt),
+    height: Math.round(window.__game?.plane?.height),
+    pending: window.__dbg?.pendingSnap,
+    firstPerson: window.__dbg?.firstPerson,
+  }))).toMatchObject({
+    controller: 'ParachutistController',
+    ground: 8000,
+    height: 8140,
+    pending: false,
+    firstPerson: false,
+  });
+  await expect(page.locator('#menu-error')).toBeEmpty();
+  await expect(page.locator('#fatal')).toHaveClass(/hidden/);
   expect(errors).toEqual([]);
 });
 
@@ -647,7 +699,7 @@ test('presence is relayed under the real player id without interrupting lobby pr
   await expect(page.locator('[data-player-id="test-player-2"] .player-presence')).toHaveText('Street View active');
   await page.evaluate(() => window.__testReceiveLobbyMessage({t:'presence',presence:'unknown'}, 'test-player-1'));
   await expect(page.locator('[data-player-id="test-player-1"] .player-presence')).toHaveText('AFK');
-  await page.evaluate(() => window.__testReceiveLobbyMessage({t:'hello',protocolVersion:2,name:'New Pilot',plane:'pa28'}, 'new-pilot'));
+  await page.evaluate(() => window.__testReceiveLobbyMessage({t:'hello',protocolVersion:2,name:'New Pilot',plane:'mooney'}, 'new-pilot'));
   const welcome = await page.evaluate(() => window.__testLobbyMessages.find(m => m.kind === 'sendTo' && m.id === 'new-pilot' && m.data.t === 'welcome').data);
   expect(welcome.roster.find(p => p.id === 'test-player-1').presence).toBe('afk');
   expect(welcome.roster.find(p => p.id === 'test-player-2').presence).toBe('street-view');
@@ -696,8 +748,7 @@ test('pause, background and Street View publish presence and clear it on return'
   await page.locator('#street-return').click();
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await expect.poll(latestPresence).toBe('active');
-  // Browsers may refuse script-closing a popup after its opener was cleared for security.
-  if (!popup.isClosed()) await popup.close();
+  await expect.poll(() => popup.isClosed()).toBe(true);
   await page.locator('#street-view-link').click();
   const secondPopupPromise = context.waitForEvent('page');
   await page.locator('#street-enter').click();
@@ -749,7 +800,7 @@ test('QR room joins accept missing, older and newer optional version markers wit
   const state = await page.evaluate(() => {
     window.__testPopulateLobby(1);
     for (const protocolVersion of [undefined,1,2,3]) {
-      const data = {t:'hello',name:`Client ${protocolVersion ?? 'public'}`,plane:'pa28'};
+      const data = {t:'hello',name:`Client ${protocolVersion ?? 'public'}`,plane:'mooney'};
       if (protocolVersion != null) data.protocolVersion = protocolVersion;
       window.__testReceiveLobbyMessage(data, `client-${protocolVersion ?? 'public'}`);
     }
@@ -785,7 +836,7 @@ test('a public handshake uses an authoritative locked vehicle spawn and never re
   await page.evaluate(() => {
     window.__testPopulateLobby(1);
     window.__testReceiveLobbyMessage({t:'hello',name:'Phone',plane:'jet'}, 'public-player');
-    window.__testReceiveLobbyMessage({t:'hello',name:'Waiting phone',plane:'pa28'}, 'waiting-player');
+    window.__testReceiveLobbyMessage({t:'hello',name:'Waiting phone',plane:'mooney'}, 'waiting-player');
   });
   await page.locator('[data-player-id="public-player"] .approval-toggle').check();
   await page.locator('#lobby-city').fill('48.8584, 2.2945');
@@ -982,7 +1033,7 @@ test('the same connected players can return to the lobby and start successive ve
 test('valid mountain terrain near the old holding altitude releases both connected players', async ({page,context}) => {
   const guest = await context.newPage();
   const clients = [{page,id:'test-host'},{page:guest,id:'test-player-1'}];
-  await startFixtureRound(clients,'pa28',false);
+  await startFixtureRound(clients,'mooney',false);
   for (const client of clients) await client.page.evaluate(() => window.__testSnapMultiplayerStart(5680));
   await flushMultiplayerControls(clients);
   for (const client of clients) {
@@ -995,7 +1046,7 @@ test('valid mountain terrain near the old holding altitude releases both connect
 test('a missing first terrain acknowledgement is retried without keeping connected players on the loading screen', async ({page,context}) => {
   const guest = await context.newPage();
   const clients = [{page,id:'test-host'},{page:guest,id:'test-player-1'}];
-  await startFixtureRound(clients,'pa28',false);
+  await startFixtureRound(clients,'mooney',false);
   await guest.evaluate(() => {
     // A loading background tab can stop drawing; the network acknowledgement
     // must still be retried by the round's synchronization timer.
@@ -1019,7 +1070,7 @@ test('a missing first terrain acknowledgement is retried without keeping connect
 test('terrain release continues while the Admin is in the lobby and the Admin can join afterwards', async ({page,context}) => {
   const guest = await context.newPage();
   const clients = [{page,id:'test-host'},{page:guest,id:'test-player-1'}];
-  await startFixtureRound(clients,'pa28',false);
+  await startFixtureRound(clients,'mooney',false);
   await page.locator('#mp-wait-lobby').click();
   await flushMultiplayerControls(clients);
   await guest.evaluate(() => window.__testSnapMultiplayerStart());
@@ -1040,7 +1091,7 @@ test('crashed guests vanish immediately, reject delayed poses and can rejoin the
   const guest = await context.newPage();
   const clients = [{page,id:'test-host'},{page:guest,id:'test-player-1'}];
   await startFixtureRound(clients);
-  const guestPose = await guest.evaluate(() => window.__testMultiplayerContactPose({key:'pa28',state:'airborne',h:1000,north:120}));
+  const guestPose = await guest.evaluate(() => window.__testMultiplayerContactPose({key:'mooney',state:'airborne',h:1000,north:120}));
   await page.evaluate(pose => {
     window.__testReceiveLobbyMessage(pose,'test-player-1');
     window.__testMultiplayerContactFrame();
@@ -1077,7 +1128,7 @@ test('the Admin can crash and rejoin twice near a living player without restarti
   const clients = [{page,id:'test-host'},{page:guest,id:'test-player-1'}];
   await startFixtureRound(clients);
   const [hostPose,guestPose] = await Promise.all(clients.map((client,index) => client.page.evaluate(index =>
-    window.__testMultiplayerContactPose({key:'pa28',state:'airborne',h:1000,north:index * 1000}),index)));
+    window.__testMultiplayerContactPose({key:'mooney',state:'airborne',h:1000,north:index * 1000}),index)));
   await page.evaluate(pose => window.__testReceiveLobbyMessage(pose,'test-player-1'),guestPose);
   await guest.evaluate(pose => window.__testReceiveLobbyMessage(pose),hostPose);
   for (let cycle = 0; cycle < 2; cycle += 1) {
@@ -1154,9 +1205,8 @@ test('space impacts remove the Admin and allow a direct rejoin beside an orbitin
   expect(await page.evaluate(() => window.__testMultiplayerCrash())).toBe(true);
   await flushMultiplayerControls(clients);
   await page.locator('#banner-menu').click();
-  await page.locator('#lobby-car-next').click();
-  await page.locator('#lobby-car-next').click();
-  await expect(page.locator('#lobby-car-name')).toHaveText('Piper PA-28');
+  await chooseVehicle(page, 'Mooney M20M', true);
+  await expect(page.locator('#lobby-car-name')).toHaveText('Mooney M20M');
   await page.locator('#lobby-start').click();
   const fallback = await page.evaluate(() => window.__testReceiveLobbyMessage());
   expect(fallback.inRound).toBe(true);
@@ -1252,27 +1302,27 @@ test('admin vehicle cube forces the lobby selection and ready profiles reject ed
   await page.locator('#lobby-vehicle-lock').click();
   await expect(page.locator('#lobby-vehicle-lock')).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('#lobby-car-next')).toBeEnabled();
-  await expect(page.locator('.p-plane')).toHaveText(Array(4).fill('Dash 8 Q400'));
+  await expect(page.locator('.p-plane')).toHaveText(Array(4).fill('Boeing 737-800'));
   await page.locator('#lobby-car-next').click();
-  await expect(page.locator('.p-plane')).toHaveText(Array(4).fill('Cessna Citation'));
+  await expect(page.locator('.p-plane')).toHaveText(Array(4).fill('Airbus A380'));
 
   const rejected = await page.evaluate(() => {
     window.__testLobbyMessages.length = 0;
     return window.__testReceiveLobbyMessage({t:'plane',plane:'jet'}, 'test-player-1');
   });
-  expect(rejected.roster.find(p => p.id === 'test-player-1').plane).toBe('citation');
+  expect(rejected.roster.find(p => p.id === 'test-player-1').plane).toBe('a380');
   expect(await page.evaluate(() => window.__testLobbyMessages.some(m => m.kind === 'sendExcept' && m.data.t === 'plane'))).toBe(false);
 
   const joined = await page.evaluate(() => window.__testReceiveLobbyMessage({t:'hello',protocolVersion:2,name:'New Pilot',plane:'rocket'}, 'test-new-player'));
-  expect(joined.roster.find(p => p.id === 'test-new-player').plane).toBe('citation');
-  expect(await page.evaluate(() => window.__testLobbyMessages.find(m => m.kind === 'sendTo' && m.id === 'test-new-player' && m.data.t === 'welcome').data.lockedPlane)).toBe('citation');
+  expect(joined.roster.find(p => p.id === 'test-new-player').plane).toBe('a380');
+  expect(await page.evaluate(() => window.__testLobbyMessages.find(m => m.kind === 'sendTo' && m.id === 'test-new-player' && m.data.t === 'welcome').data.lockedPlane)).toBe('a380');
 
   await page.evaluate(() => window.__testReceiveLobbyMessage({t:'ready',ready:true}, 'test-player-1'));
   await expect(page.locator('[data-player-id="test-player-1"] .p-name-input')).toBeDisabled();
   const frozen = await page.evaluate(() => window.__testReceiveLobbyMessage({t:'name',name:'Changed after start'}, 'test-player-1'));
   expect(frozen.roster.find(p => p.id === 'test-player-1').name).toBe('Pilot 1');
   const repeatedHello = await page.evaluate(() => window.__testReceiveLobbyMessage({t:'hello',name:'Reset profile',plane:'rocket'}, 'test-player-1'));
-  expect(repeatedHello.roster.find(p => p.id === 'test-player-1')).toMatchObject({name:'Pilot 1',plane:'citation',ready:true});
+  expect(repeatedHello.roster.find(p => p.id === 'test-player-1')).toMatchObject({name:'Pilot 1',plane:'a380',ready:true});
   expect(await page.evaluate(() => {
     window.__testLobbyMessages.length = 0;
     window.__testReceiveLobbyMessage({t:'pose',plane:'rocket',lat:52,lon:16,h:400,heading:0,pitch:0,roll:0,seq:1,at:1000}, 'test-player-1');
@@ -1293,14 +1343,14 @@ test('admin vehicle cube forces the lobby selection and ready profiles reject ed
   });
   expect(ownName).toBe('Host');
   await page.locator('#lobby-car-next').dispatchEvent('click');
-  await expect(page.locator('#lobby-car-name')).toHaveText('Cessna Citation');
+  await expect(page.locator('#lobby-car-name')).toHaveText('Airbus A380');
   await page.locator('#lobby-start').click();
   await expect(page.locator('#player-name-input')).toBeEnabled();
   await expect(page.locator('#lobby-car-next')).toBeEnabled();
   await page.locator('#lobby-vehicle-lock').click();
   await expect(page.locator('#lobby-vehicle-lock')).toHaveAttribute('aria-pressed', 'false');
   const stillFrozen = await page.evaluate(() => window.__testReceiveLobbyMessage({t:'plane',plane:'rocket'}, 'test-player-1'));
-  expect(stillFrozen.roster.find(p => p.id === 'test-player-1').plane).toBe('citation');
+  expect(stillFrozen.roster.find(p => p.id === 'test-player-1').plane).toBe('a380');
   await page.evaluate(() => window.__testReceiveLobbyMessage({t:'ready',ready:false}, 'test-player-1'));
   await expect(page.locator('[data-player-id="test-player-1"] .p-name-input')).toBeEnabled();
   const editable = await page.evaluate(() => window.__testReceiveLobbyMessage({t:'plane',plane:'rocket'}, 'test-player-1'));
@@ -1415,7 +1465,7 @@ test('walking bodies, flying parachutists and every aircraft detect real pose co
   await expect.poll(() => page.evaluate(() => !!window.__game)).toBe(true);
   await page.evaluate(() => window.__testPopulateLobby(2));
   for (const [key,state,distance] of [['parachutist','grounded',0.5],['parachutist','airborne',8.5],
-    ['pa28','airborne',10],['q400','airborne',26],['citation','airborne',15],
+    ['mooney','airborne',10],['boeing737','airborne',26],['a380','airborne',15],
     ['jet','airborne',9],['rocket','airborne',11]]) {
     const result = await page.evaluate(({key,state,distance}) => {
       const pose = window.__testMultiplayerContactPose({key,state});
@@ -1553,7 +1603,7 @@ test('real pause, background and Street View events reach another player overhea
 });
 
 test('fighter streams terrain in smooth batches without lowering detail', async ({page}) => {
-  await page.goto('/');
+  await page.goto('/', {waitUntil:'domcontentloaded'});
   await expect.poll(() => page.evaluate(() => !!window.__game)).toBe(true);
   expect(await page.evaluate(() => window.__testFighterFlight())).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__dbg?.selectedPlane)).toBe('jet');
@@ -1675,7 +1725,7 @@ test('rocket launch moves from a rear camera to an angled atmospheric view', asy
   await expect.poll(() => page.evaluate(() => window.__dbg?.skySpaceBlend)).toBeGreaterThan(0);
   await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.visible)).toBe(true);
   await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.space)).toBe(false);
-  await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.color)).toBe('#ffa21a');
+  await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.color)).toBe('#ff8a16');
   await expect.poll(() => page.evaluate(() => window.__dbg?.rocketLaunchCameraPhase), {timeout:6000}).toBeGreaterThan(0.98);
   await expect.poll(() => page.evaluate(() => window.__dbg?.rocketLaunchCameraLocal?.[0])).toBeLessThan(-6.5);
   await expect.poll(() => page.evaluate(() => window.__dbg?.rocketLaunchCameraLocal?.[1])).toBeGreaterThan(17);
@@ -1726,6 +1776,9 @@ test('space environments support reentry, planetary surface flight and the black
 
   await page.locator('#space-enter').click();
   await expect.poll(() => page.evaluate(() => window.__dbg?.earthReentry)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.visible)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.reentry)).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__dbg?.rocketPlume?.scale?.[1])).toBeLessThan(0.65);
   await expect.poll(() => page.evaluate(() => window.__dbg?.camDist)).toBeLessThan(18);
   await expect.poll(() => page.evaluate(() => window.__dbg?.skySpaceBlend)).toBeGreaterThan(0.9);
   await expect(page.locator('#space-nav')).toBeHidden();

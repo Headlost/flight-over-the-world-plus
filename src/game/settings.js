@@ -1,5 +1,6 @@
 import { QUALITY } from './quality.js';
 import { ionTokenList } from './ionTokens.js';
+import { resolveTerrainPoolEndpoint } from './terrainEndpoint.js';
 import {
   brightnessLevelFromMultiplier,
   brightnessMultiplierFromLevel,
@@ -15,13 +16,20 @@ function readSettings() {
   } catch { return {}; }
 }
 const saved = readSettings();
+const configuredTerrainPoolEndpoint = (import.meta.env.VITE_TERRAIN_POOL_ENDPOINT || '').trim();
+const terrainPoolEndpoint = resolveTerrainPoolEndpoint(configuredTerrainPoolEndpoint, {
+  localProxy: import.meta.env.DEV
+    && String(import.meta.env.VITE_TERRAIN_POOL_LOCAL_PROXY || '').toLowerCase() === 'true',
+  pageURL: globalThis.location?.href,
+});
 // The deployment supplies the default terrain access. An optional player token
 // is handled separately and only for the lifetime of the current browser tab.
 export const settings = {
   quality: QUALITY[saved.quality] ? saved.quality : 'performance',
   adaptive: saved.adaptive !== false,
+  hud: saved.hud !== false,
   brightness: sanitizeBrightnessMultiplier(saved.brightness),
-  terrainPoolEndpoint: (import.meta.env.VITE_TERRAIN_POOL_ENDPOINT || '').trim(),
+  terrainPoolEndpoint,
   ion: import.meta.env.VITE_CESIUM_ION_KEY || '',
   ionTokens: ionTokenList(import.meta.env.VITE_CESIUM_ION_KEY, import.meta.env.VITE_CESIUM_ION_FALLBACK_KEYS),
 };
@@ -32,6 +40,7 @@ function saveSettings() {
     localStorage.setItem('fotw-settings', JSON.stringify({
       quality: settings.quality,
       adaptive: settings.adaptive,
+      hud: settings.hud,
       brightness: settings.brightness,
     }));
   } catch { /* local preferences are optional */ }
@@ -56,7 +65,7 @@ function applyMenuBrightness() {
   document.documentElement.style.setProperty('--menu-preview-brightness', String(multiplier));
 }
 
-export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQualityChange) {
+export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQualityChange, onHudChange = () => {}) {
   const dialog = document.createElement('dialog');
   dialog.className = 'flight-dialog display-settings-dialog';
   dialog.setAttribute('aria-labelledby', 'settings-title');
@@ -66,6 +75,8 @@ export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQu
     <p class="settings-note"><strong>${QUALITY.performance.label}</strong> · up to 2560 × 1440, with mipmapped, anisotropically filtered terrain textures.</p>
     <label class="check"><input id="adaptive" type="checkbox"> Adapt resolution to keep flight smooth</label>
     <p class="settings-note" id="quality-warning">Adaptive resolution protects frame rate while nearby map tiles sharpen progressively. Close-up detail is limited by the source survey available at a location.</p>
+    <label class="check"><input id="show-flight-hud" type="checkbox"> Show flight HUD</label>
+    <p class="settings-note">Turns the gauges, timer, target distance and flight status readouts on or off. Pause, safety messages, voice chat and map attribution remain available.</p>
     <div class="display-brightness-control">
       <label for="display-brightness">Image brightness</label>
       <output id="display-brightness-value" for="display-brightness">50%</output>
@@ -81,9 +92,12 @@ export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQu
   </form>`;
   document.body.append(dialog);
   const a = dialog.querySelector('#adaptive');
+  const hud = dialog.querySelector('#show-flight-hud');
   const brightness = dialog.querySelector('#display-brightness');
   const brightnessOutput = dialog.querySelector('#display-brightness-value');
   a.checked = settings.adaptive;
+  hud.checked = settings.hud;
+  document.body.classList.toggle('hud-hidden', !settings.hud);
   const renderBrightnessLevel = (level) => {
     const percent = Math.round(sanitizeBrightnessLevel(level));
     brightness.value = String(percent);
@@ -106,6 +120,12 @@ export function setupSettings(onQualityChange, onOpen, onBrightnessChange = onQu
     onQualityChange();
   };
   a.addEventListener('change', change);
+  hud.addEventListener('change', () => {
+    settings.hud = hud.checked;
+    document.body.classList.toggle('hud-hidden', !settings.hud);
+    saveSettings();
+    onHudChange(settings.hud);
+  });
   brightness.addEventListener('input', () => syncBrightness(false));
   brightness.addEventListener('change', () => syncBrightness(true));
   const button = document.createElement('button');

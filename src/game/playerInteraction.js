@@ -4,12 +4,15 @@ export const MAX_PLAYER_BUMP = 8;
 export function interactionProfile(key, state, wingspan = 10) {
   const span = Number.isFinite(wingspan) ? Math.max(1, wingspan) : 10;
   const body = { radius: 0.58, halfHeight: 0.9, centerHeight: 0.9 };
-  if (key === "parachutist" && state === "grounded") {
+  if ((key === "parachutist" || key === "freeflyer") && state === "grounded") {
     return { kind: "person", ...body, stackable: true, volumes: [body] };
   }
   if (key === "parachutist") {
     const canopy = { radius: span * 0.5, halfHeight: 1.4, centerHeight: 7.2 };
     return { kind: "canopy", ...canopy, stackable: true, volumes: [body, canopy] };
+  }
+  if (key === "freeflyer") {
+    return { kind: "person", ...body, stackable: true, volumes: [body] };
   }
   const hull = { radius: Math.max(2.2, span * 0.5), halfHeight: Math.max(1.2, span * 0.12), centerHeight: 0 };
   return {

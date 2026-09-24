@@ -18,7 +18,7 @@
 #game-tools[hidden] { display: none; }
 #game-tools button { width: auto; min-height: 38px; margin: 0; padding: 8px 12px; border: 1px solid #91aac866; border-radius: 9px; background: #17212de8; color: #eef6ff; font: 700 12px/1.2 system-ui; cursor: pointer; box-shadow: 0 7px 22px #0004; pointer-events: auto; }
 #game-tools button:hover, #game-tools button:focus-visible { background: #26394de8; }
-body:not(.aerobatic-selected) .acro-control { display: none !important; }
+body:not(.smoke-selected) .acro-control { display: none !important; }
 body:not(.aerobatic-selected) .touch-yaw-controls { display: none; }
 .acro-control { touch-action: none; }
 #landscape-toggle { display: none; width: 38px !important; padding: 0 !important; font-size: 18px !important; }
@@ -88,6 +88,20 @@ input[style*="display: none"] + .pick-location, input.locked + .pick-location { 
 #space-action-hint kbd { display: grid; width: 29px; height: 29px; place-items: center; flex: 0 0 auto; border: 1px solid #7cffae; border-radius: 8px; background: #123d27; color: #afffca; box-shadow: 0 0 0 1px #b5ffcf18 inset, 0 0 13px #42ff8b58; font: 800 14px/1 system-ui; animation: space-action-pulse 1.35s ease-in-out infinite; }
 @keyframes space-action-pulse { 50% { transform: scale(1.08); background: #185535; color: #eafff0; box-shadow: 0 0 0 1px #d3ffe12c inset, 0 0 19px #42ff8b85; } }
 @media (prefers-reduced-motion: reduce) { #space-action-hint kbd { animation: none; } }
+#black-hole-sound-prompt { position: fixed; z-index: 80; left: 50%; top: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+#black-hole-sound-prompt[hidden] { display: none; }
+#black-hole-sound-prompt button { min-width: min(280px, calc(100vw - 32px)); padding: 14px 24px; border: 2px solid #ffd990; border-radius: 999px; background: #180e08e8; color: #fff7e8; box-shadow: 0 0 24px #ffb44c99, 0 0 75px #ee822560; font: 900 clamp(19px, 3vw, 30px)/1.2 system-ui; letter-spacing: .16em; text-transform: uppercase; cursor: pointer; pointer-events: auto; animation: black-hole-sound-pulse 1s ease-in-out infinite alternate; }
+#black-hole-sound-prompt button:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
+body.black-hole-sound-warning .audio-game-controls > summary,
+body.black-hole-music-off #music-game-toggle,
+body.black-hole-ambient-off #ambient-game-volume { outline: 2px solid #ffcc78; outline-offset: 2px; box-shadow: 0 0 16px #ffad52c9; animation: black-hole-sound-pulse 1s ease-in-out infinite alternate; }
+@keyframes black-hole-sound-pulse { to { filter: brightness(1.5); box-shadow: 0 0 32px #ffbd6b, 0 0 92px #ff872080; } }
+@media (prefers-reduced-motion: reduce) {
+  #black-hole-sound-prompt button,
+  body.black-hole-sound-warning .audio-game-controls > summary,
+  body.black-hole-music-off #music-game-toggle,
+  body.black-hole-ambient-off #ambient-game-volume { animation: none; }
+}
 #planet-entry { --entry-color: #7bdcff; position: fixed; z-index: 8; inset: 0; display: grid; place-content: center; gap: 8px; opacity: 0; overflow: hidden; color: #fff; text-align: center; pointer-events: none; transition: opacity .42s ease; }
 #planet-entry.show { opacity: 1; }
 #planet-entry::before { content: ""; position: absolute; inset: -35%; background: repeating-conic-gradient(from 0deg at 50% 50%, transparent 0 4.6deg, color-mix(in srgb, var(--entry-color) 40%, transparent) 4.8deg 5deg, transparent 5.2deg 10deg); mask-image: radial-gradient(circle, transparent 0 11%, #000 24% 76%, transparent 94%); animation: entry-streaks .85s linear infinite; }
@@ -359,6 +373,16 @@ kbd {
   display: block;
 }
 
+body.hud-hidden #f-instruments,
+body.hud-hidden #f-center,
+body.hud-hidden #flight-status,
+body.hud-hidden #movement-status,
+body.hud-hidden #space-nav,
+body.hud-hidden #space-action-hint,
+body.hud-hidden #location-arrival {
+  display: none !important;
+}
+
 #street-mode { position: fixed; inset: 0; z-index: 80; display: none; background: #111; }
 #street-mode.open { display: block; }
 #street-mode #streetview { display: block; width: 100%; height: 100%; }
@@ -372,6 +396,78 @@ kbd {
 .street-prompt-actions { display: flex; gap: 10px; }
 .street-prompt-actions button { margin: 0; }
 @media (max-width: 720px) { .street-mode-hud { align-items: stretch; flex-direction: column; } .street-mode-hud button { white-space: normal; } .street-prompt-actions { flex-direction: column; } }
+
+.gamepad-keyboard-dialog {
+  width: min(980px, calc(100vw - 24px));
+  padding: 22px;
+  overflow: auto;
+}
+
+.gamepad-keyboard-dialog form { display: grid; gap: 14px; }
+.gamepad-keyboard-dialog .dialog-heading { align-items: flex-start; }
+.gamepad-keyboard-target { margin: 2px 0 0; color: #a9bed2; font-size: 12px; }
+
+.gamepad-keyboard-preview {
+  display: block;
+  min-height: 54px;
+  padding: 12px 15px;
+  overflow: hidden;
+  border: 1px solid #7393ad;
+  border-radius: 10px;
+  background: #07111d;
+  color: #fff5d6;
+  font: 700 clamp(18px, 2.5vw, 26px)/1.2 system-ui, sans-serif;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: inset 0 0 0 1px #07111d, inset 0 0 18px #0008;
+}
+
+.gamepad-keyboard-preview.empty::after { content: "Start typing…"; color: #71869a; font-weight: 500; }
+.gamepad-keyboard-rows { display: grid; gap: 7px; }
+.gamepad-keyboard-row { display: flex; justify-content: center; gap: 7px; }
+
+.flight-dialog .gamepad-keyboard-key {
+  flex: 0 1 74px;
+  min-width: 42px;
+  min-height: 48px;
+  margin: 0;
+  padding: 8px 6px;
+  border-color: #607991;
+  background: linear-gradient(#25394d, #162535);
+  color: #f3f7fb;
+  font-size: 17px;
+  box-shadow: inset 0 1px 0 #ffffff12, 0 4px 10px #0004;
+}
+
+.flight-dialog .gamepad-keyboard-key:hover,
+.flight-dialog .gamepad-keyboard-key:focus-visible,
+.gamepad-keyboard-actions button:focus-visible {
+  border-color: #ffd98a;
+  background: #d6a753;
+  color: #17120b;
+  outline: 3px solid #fff1b8;
+  outline-offset: 2px;
+  transform: translateY(-1px) scale(1.04);
+}
+
+.gamepad-keyboard-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.gamepad-keyboard-actions button { min-width: 92px; min-height: 44px; margin: 0; }
+.gamepad-keyboard-dialog .settings-note { margin: 0; text-align: center; }
+
+@media (max-width: 720px), (max-height: 720px) {
+  .gamepad-keyboard-dialog { padding: 14px; }
+  .gamepad-keyboard-dialog form { gap: 9px; }
+  .gamepad-keyboard-rows, .gamepad-keyboard-row { gap: 4px; }
+  .flight-dialog .gamepad-keyboard-key { min-width: 28px; min-height: 38px; padding: 5px 3px; font-size: 14px; }
+  .gamepad-keyboard-actions button { min-width: 72px; min-height: 38px; padding: 7px 10px; }
+}
 
 #fatal {
   position: fixed;
@@ -632,6 +728,191 @@ kbd {
 #cesium-token-privacy code { color: #e7f3ff; }
 .cesium-access-status { margin: 8px 2px 0; color: #a9dcbc; font-size: 11px; line-height: 1.35; }
 .cesium-access-status.error { color: #ffbd9f; font-weight: 700; }
+
+.input-method {
+  min-width: 0;
+  margin: 0 0 18px;
+  padding: 12px 14px 10px;
+  border: 1px solid rgba(133, 169, 205, 0.38);
+  border-radius: 12px;
+  background: rgba(5, 16, 31, 0.48);
+  color: var(--paper);
+  text-align: left;
+}
+
+.input-method legend {
+  padding: 0 7px;
+  color: #dcecff;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.input-method-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.input-method-option {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(133, 169, 205, 0.26);
+  border-radius: 9px;
+  background: rgba(35, 62, 89, 0.48);
+  cursor: pointer;
+}
+
+.input-method-option:has(input:checked) {
+  border-color: rgba(216, 162, 74, 0.86);
+  background: rgba(54, 67, 83, 0.88);
+  box-shadow: inset 0 0 0 1px rgba(216, 162, 74, 0.18);
+}
+
+.input-method-option input {
+  flex: 0 0 auto;
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--gold);
+}
+
+.input-method-option span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.input-method-option strong { font-size: 13px; line-height: 1.25; }
+.input-method-option small { color: #b9c9d8; font-size: 11px; line-height: 1.3; }
+
+.gamepad-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 11px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(133, 169, 205, 0.26);
+}
+
+.gamepad-panel[hidden] { display: none; }
+.gamepad-status { margin: 0; color: #b9d8f1; font-size: 12px; line-height: 1.4; }
+.gamepad-status.connected { color: #9fe1ba; }
+.gamepad-status.warning { color: #ffd293; }
+
+.gamepad-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.gamepad-list:empty { display: none; }
+.gamepad-list li {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 9px;
+  border: 1px solid rgba(133, 169, 205, 0.24);
+  border-radius: 8px;
+  background: rgba(8, 25, 43, 0.7);
+  color: #c9d8e7;
+  font-size: 11px;
+}
+
+.gamepad-list li.active {
+  border-color: rgba(216, 162, 74, 0.72);
+  color: #fff0ca;
+}
+
+.gamepad-list .gamepad-device-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gamepad-list .gamepad-device-meta {
+  flex: 0 0 auto;
+  color: #91abc2;
+  font-size: 10px;
+}
+
+.gamepad-settings {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+}
+
+.gamepad-settings > label,
+.gamepad-vibration-row > label {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+  color: #dcecff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.gamepad-settings select {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: 7px 8px;
+  border: 1px solid var(--menu-field-border);
+  border-radius: 7px;
+  background: #0b1b2d;
+  color: #edf6ff;
+}
+
+.gamepad-settings input[type="range"] {
+  width: 100%;
+  min-width: 0;
+  accent-color: var(--gold);
+}
+
+.gamepad-settings output {
+  justify-self: end;
+  margin-top: -18px;
+  color: #fff0ca;
+  font-variant-numeric: tabular-nums;
+}
+
+.gamepad-vibration-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+}
+
+.gamepad-vibration-row .gamepad-check {
+  display: flex;
+  min-height: 36px;
+  align-items: center;
+  gap: 7px;
+}
+
+.gamepad-check input { width: 17px; height: 17px; margin: 0; accent-color: var(--gold); }
+#gamepad-vibration-test { width: auto; min-height: 36px; margin: 0; padding: 7px 11px; }
+#gamepad-vibration-test:disabled { opacity: .48; cursor: default; }
+.gamepad-map { margin: 0; color: #e8d9b9; font-size: 11px; line-height: 1.45; }
+.gamepad-privacy-note { margin: 0; color: #90a8bd; font-size: 10px; line-height: 1.4; }
+
+body.gamepad-navigation :focus {
+  outline: 3px solid #ffd66e !important;
+  outline-offset: 4px !important;
+  box-shadow: 0 0 0 7px rgba(216, 162, 74, 0.16);
+}
+
+body.input-gamepad #vehicle-controls { display: none; }
+body.input-gamepad #vehicle-controls-gamepad:not([hidden]) { display: block; }
 
 .anywhere-word {
   color: #ffd84a;
@@ -2389,9 +2670,17 @@ kbd {
 
 @media (max-width: 560px) {
   .cesium-access-choices,
-  .cesium-token-fields { grid-template-columns: 1fr; }
+  .cesium-token-fields,
+  .input-method-choices,
+  .gamepad-settings { grid-template-columns: 1fr; }
   .cesium-custom-row > a { margin-left: 10px; }
   #cesium-token-privacy { grid-column: 1; }
+  .gamepad-vibration-row {
+    grid-column: 1;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+  #gamepad-vibration-test { width: 100%; }
 }
 
 /* Keep the landing card and its separate music control together on short screens. */
@@ -2405,6 +2694,9 @@ kbd {
   .cesium-access-option { padding: 6px 8px; }
   .cesium-access-status { margin-top: 5px; }
   .cesium-token-fields { margin-top: 7px; padding-top: 7px; }
+  .input-method { margin-bottom: 9px; padding: 7px 9px 6px; }
+  .input-method-option { padding: 6px 8px; }
+  .gamepad-panel { margin-top: 7px; padding-top: 7px; }
   .landing-modes { gap: 8px; }
   .landing-modes button { min-height: 44px; padding: 9px 22px; font-size: 17px; }
 }

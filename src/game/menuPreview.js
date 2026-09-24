@@ -9,7 +9,8 @@ import {
   Group,
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { applyRotorState } from "./rotors.js";
+import { applyRotorState, spinRotors } from "./rotors.js";
+import { disposeModel } from "./dispose.js";
 
 // karuzela pojazdów w menu — jeden duży podgląd, strzałki przełączają model
 export function createCarousel(canvas, items, opts = {}) {
@@ -47,9 +48,14 @@ export function createCarousel(canvas, items, opts = {}) {
 
   const loader = new GLTFLoader();
   const models = new Map(); // key -> { group, wingspan }
+  const requested = new Set();
+  const itemsByKey = new Map(items.map(item => [item.key, item]));
   let current = null; // { group, wingspan, slideX }
   let currentKey = null;
   let wantedKey = items[0].key;
+  let active = true;
+  let disposed = false;
+  let lastFrameTime = 0;
 
   function resize() {
     const w = canvas.clientWidth || 640;
@@ -69,21 +75,34 @@ export function createCarousel(canvas, items, opts = {}) {
 
   function show(keyName, dir = 0) {
     wantedKey = keyName;
+    const item = itemsByKey.get(keyName);
+    if (item) ensureLoaded(item);
     const entry = models.get(keyName);
-    if (!entry) return;
     if (current) scene.remove(current.group);
+    if (!entry) {
+      current = null;
+      currentKey = null;
+      return;
+    }
     current = { group: entry.group, wingspan: entry.wingspan, slideX: dir * entry.wingspan * 1.4 };
     currentKey = keyName;
     scene.add(entry.group);
     frame(entry.wingspan, entry.item);
   }
 
-  for (const item of items) {
+  function ensureLoaded(item) {
+    if (requested.has(item.key) || disposed) return;
+    requested.add(item.key);
     const register = (model) => {
+      if (disposed) {
+        disposeModel(model);
+        return;
+      }
       if (item.prepare) item.prepare(model); // np. poza czarownicy + miotła
       const box = new Box3().setFromObject(model);
       const size = box.getSize(new Vector3());
-      model.scale.setScalar(item.wingspan / Math.max(size.x, size.y, size.z));
+      model.scale.setScalar(item.wingspan / (item.spanAxis === "x"
+        ? size.x : Math.max(size.x, size.y, size.z)));
       box.setFromObject(model);
       model.position.sub(box.getCenter(new Vector3()));
       model.traverse((o) => {
@@ -94,19 +113,39 @@ export function createCarousel(canvas, items, opts = {}) {
       });
       const group = new Group();
       group.add(model);
-      if (!model.userData.customProp) applyRotorState(group, false);
+      if (!model.userData.customProp) applyRotorState(group, true);
+      const previous = models.get(item.key);
+      const replaceVisible = currentKey === item.key;
+      if (previous) disposeModel(previous.group);
       models.set(item.key, { group, wingspan: item.wingspan, item });
-      if (item.key === wantedKey && currentKey !== wantedKey) show(item.key);
+      if (item.key === wantedKey && (replaceVisible || currentKey !== wantedKey)) show(item.key);
     };
     if (item.procedural) register(item.build());
-    else loader.load(item.file, (gltf) => register(item.build ? item.build(gltf) : gltf.scene));
+    else {
+      if (item.fallback) register(item.fallback());
+      loader.load(
+        item.file,
+        (gltf) => {
+          try {
+            register(item.build ? item.build(gltf) : gltf.scene);
+          } catch (error) {
+            disposeModel(gltf.scene);
+            console.warn(`Could not prepare ${item.key} preview; keeping the local fallback.`, error);
+          }
+        },
+        undefined,
+        (error) => console.warn(`Could not load ${item.key} preview; keeping the local fallback.`, error),
+      );
+    }
   }
 
-  let active = true;
   function tick() {
+    if (disposed) return;
     requestAnimationFrame(tick);
     if (!active || !current) return;
     const t = performance.now() * 0.001;
+    const dt = lastFrameTime ? Math.min(0.05, t - lastFrameTime) : 1 / 60;
+    lastFrameTime = t;
     // wjazd z boku po przełączeniu + powolny obrót pokazowy
     current.slideX *= 0.86;
     current.group.position.x = current.slideX;
@@ -116,14 +155,19 @@ export function createCarousel(canvas, items, opts = {}) {
       : item.previewYaw + Math.sin(t * 0.45) * (item.previewSweep ?? 0.28);
     current.group.rotation.z = Math.sin(t * 0.6) * 0.05;
     if (item?.update) item.update(current.group.children[0] || current.group, 1 / 60);
+    spinRotors(current.group, dt, item?.cruise || 140);
     renderer.render(scene, camera);
   }
   tick();
   resize();
+  show(items[0].key);
   window.addEventListener("resize", resize);
 
   function dispose() {
+    disposed = true;
     active = false;
+    for (const { group } of models.values()) disposeModel(group);
+    models.clear();
     try {
       renderer.dispose();
       const gl = renderer.getContext();
@@ -132,7 +176,6 @@ export function createCarousel(canvas, items, opts = {}) {
     } catch {
       /* ignore */
     }
-    models.clear();
     current = null;
   }
 

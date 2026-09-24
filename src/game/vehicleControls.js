@@ -46,6 +46,32 @@ const PROFILES = Object.freeze({
     stickLabel: "Aircraft pitch and roll control",
   }),
 
+  airliner: freezeProfile({
+    desktopLines: [
+      [key("W/S"), " pitch · ", key("A/D"), " roll and steer"],
+      [key("Z"), " contrails on/off · ", ...COMMON_FLIGHT_LINE],
+      ["Right-drag to look around · scroll to zoom"],
+    ],
+    touchSummary: "Drag the joystick to pitch and steer; use Contrails to toggle the engine trails.",
+    helpRows: [
+      {
+        term: "Joystick",
+        description: "Up and down control pitch; left and right roll and steer the aircraft.",
+      },
+      {
+        term: "Faster / Slower",
+        description: "Hold Faster to accelerate. Contrails stream from each engine while accelerating when enabled.",
+      },
+      {
+        term: "Contrails",
+        description: "Use Z, the Contrails button or the gamepad secondary button to turn engine trails on or off.",
+      },
+      COMMON_VIEW_ROW,
+      COMMON_PAUSE_ROW,
+    ],
+    stickLabel: "Airliner pitch and roll control",
+  }),
+
   dzikiDzik: freezeProfile({
     desktopLines: [
       [key("W/S"), " loops · ", key("A/D"), " rolls · ", key("Q/E"), " rapid turns"],
@@ -110,6 +136,36 @@ const PROFILES = Object.freeze({
     stickLabel: "Parachutist walk and canopy steering control",
   }),
 
+  freeflyer: freezeProfile({
+    desktopLines: [
+      [key("W/S"), " dive / climb · ", key("A/D"), " bank · ", key("Q/E"), " direct yaw"],
+      [key("Shift/Ctrl"), " faster / slower · ", key("Space"), " take off after landing"],
+      ["Right-drag for independent 360° view · scroll out for third-person · ", key("C"), " reset first-person view · ", key("Esc"), " pause"],
+    ],
+    touchSummary: "Fly freely with the joystick; look independently with the camera and take off again after landing.",
+    helpRows: [
+      {
+        term: "Free-flight joystick",
+        description: "Up and down control a steep dive or climb; left and right bank without locking the camera.",
+      },
+      {
+        term: "Independent view",
+        description: "Right-drag or use the right stick to look around while the character keeps flying in the chosen direction.",
+      },
+      {
+        term: "Yaw",
+        description: "Q / E or the upper and lower face buttons turn directly without changing the viewing direction.",
+      },
+      {
+        term: "Landing and takeoff",
+        description: "Land gently to walk or run, then use Takeoff to return to free flight.",
+      },
+      COMMON_VIEW_ROW,
+      COMMON_PAUSE_ROW,
+    ],
+    stickLabel: "Free-flight pitch and bank control",
+  }),
+
   rocketAtmosphere: freezeProfile({
     desktopLines: [
       [key("W/S"), " pitch · ", key("A/D"), " roll and steer · ", key("R"), " launch to orbit"],
@@ -171,7 +227,8 @@ const PROFILES = Object.freeze({
   }),
 });
 
-const ORDINARY_VEHICLE_KEYS = new Set(["ordinary", "pa28", "q400", "citation", "jet"]);
+const ORDINARY_VEHICLE_KEYS = new Set(["ordinary", "mooney", "ac130", "b2", "jet"]);
+const AIRLINER_VEHICLE_KEYS = new Set(["boeing737", "a380"]);
 
 function normalizedVehicleKey(vehicleKey) {
   return typeof vehicleKey === "string" ? vehicleKey.trim().toLowerCase() : "";
@@ -190,8 +247,10 @@ function usesSpaceControls(options) {
 export function vehicleControlProfileKey(vehicleKey, options = {}) {
   const normalized = normalizedVehicleKey(vehicleKey);
   if (ORDINARY_VEHICLE_KEYS.has(normalized)) return "ordinary";
+  if (AIRLINER_VEHICLE_KEYS.has(normalized)) return "airliner";
   if (["dzikidzik", "dziki-dzik", "dziki_dzik"].includes(normalized)) return "dzikiDzik";
   if (["parachutist", "paraglider"].includes(normalized)) return "parachutist";
+  if (["freeflyer", "free-flight", "free_flight", "superman"].includes(normalized)) return "freeflyer";
   if (normalized === "rocket") return usesSpaceControls(options) ? "rocketSpace" : "rocketAtmosphere";
   return "ordinary";
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { Quaternion, Vector3 } from 'three';
 
 test.beforeEach(async ({ context }) => {
   await context.route('https://box.zakai.eu/**', route => route.fulfill({ status: 403, body: 'Production admission disabled in controls fixture' }));
@@ -38,7 +39,7 @@ test('the launcher describes only the currently selected vehicle', async ({ page
   await page.locator('#btn-solo').click();
 
   await expectFocusedCopy(page, {
-    name: 'Piper PA-28',
+    name: 'Mooney M20M',
     includes: ['W/S pitch', 'A/D roll and steer'],
     excludes: ['loops', 'twin smoke', 'On foot', 'Under canopy', 'launch to orbit'],
     touchIncludes: ['pitch and steer'],
@@ -55,7 +56,7 @@ test('the launcher describes only the currently selected vehicle', async ({ page
     name: 'Parachutist',
     includes: ['On foot', 'Under canopy', 'gentle takeoff'],
     excludes: ['loops', 'twin smoke', 'launch to orbit'],
-    touchIncludes: ['Walk or steer', 'takeoff controls'],
+    touchIncludes: ['Walk or steer', 'Takeoff controls'],
     touchExcludes: ['loops and rolls', 'Launch to orbit'],
   });
   await page.screenshot({ path: 'test-results/vehicle-controls-parachutist-menu.png', fullPage: true });
@@ -73,6 +74,98 @@ test('the launcher describes only the currently selected vehicle', async ({ page
   });
   await expect(page.locator('#menu-error')).toBeEmpty();
   expect(errors).toEqual([]);
+});
+
+test('new fleet replaces archived aircraft and Free Flight in both carousels', async ({ page }) => {
+  test.setTimeout(90000);
+  // This assertion covers the chooser, not the visual assets. Avoid loading
+  // every large GLB twice (solo and lobby) while cycling all labels.
+  await page.route('**/models/*.glb', route => route.abort());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => page.evaluate(() => !!window.__game)).toBe(true);
+  for (const [openButton, label, nextButton] of [
+    ['#btn-solo', '#car-name', '#car-next'],
+    ['#btn-multi', '#lobby-car-name', '#lobby-car-next'],
+  ]) {
+    await page.locator(openButton).click();
+    const seen = new Set();
+    for (let index = 0; index < 12; index += 1) {
+      const name = (await page.locator(label).textContent())?.trim();
+      if (seen.has(name)) break;
+      seen.add(name);
+      await page.locator(nextButton).click();
+    }
+    expect([...seen].sort()).toEqual([
+      'Mooney M20M', 'Boeing 737-800', 'Airbus A380',
+      'Lockheed AC-130 Hercules', 'Northrop Grumman B-2 Spirit',
+      'Fighter', 'Rocket', 'Parachutist', 'Dziki dzik',
+    ].sort());
+    for (const archived of ['Piper PA-28', 'Dash 8 Q400', 'Cessna Citation', 'Free flight']) {
+      expect([...seen]).not.toContain(archived);
+    }
+    if (openButton === '#btn-solo') await page.locator('#menu-back').click();
+  }
+});
+
+test('new fleet applies revised cruise, maximum speed and course authority to gameplay', async ({ page }) => {
+  await page.route('**/models/*.glb', route => route.abort());
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => page.evaluate(() => !!window.__game)).toBe(true);
+  for (const [key, cruiseKmh, maximumKmh] of [
+    ['mooney', 220, 450], ['boeing737', 417.5, 876],
+    ['a380', 450, 945], ['ac130', 320, 670], ['b2', 450, 1010],
+  ]) {
+    expect(await page.evaluate(vehicle => window.__testVisualVehicle(vehicle), key)).toBe(true);
+    const values = await page.evaluate(() => {
+      const { plane } = window.__game;
+      return { cruise: plane.cruise * 3.6, maximum: plane.boost * 3.6,
+        speed: plane.speed * 3.6, turnRate: plane.turnRate, boostSeconds: plane.boostSeconds };
+    });
+    expect(values.cruise).toBeCloseTo(cruiseKmh, 6);
+    expect(values.maximum).toBeCloseTo(maximumKmh, 6);
+    expect(values.speed).toBeCloseTo(cruiseKmh, 6);
+    expect(values.turnRate).toBe(3);
+    expect(values.boostSeconds).toBe(1);
+  }
+});
+
+test('right mouse drag looks right in parachutist first-person camera', async ({ page }) => {
+  test.setTimeout(60000);
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  await expect.poll(() => page.evaluate(() => !!window.__game)).toBe(true);
+  expect(await page.evaluate(() => window.__testGroundedParachutist())).toBe(true);
+  await expect.poll(() => page.evaluate(() => !!window.__game.planeMesh?.userData?.parachutist?.character?.visualSkin),
+    { timeout: 20000 }).toBe(true);
+  const model = await page.evaluate(() => {
+    const rig = window.__game.planeMesh.userData.parachutist;
+    return { skin: rig.character.visualSkin.isSkinnedMesh,
+      bones: rig.character.visualSkin.skeleton.bones.length,
+      canopy: rig.canopy.name, lines: rig.canopy.getObjectByName('Branched suspension and brake lines')?.isLineSegments };
+  });
+  expect(model).toEqual({ skin: true, bones: 14, canopy: 'parachute-canopy', lines: true });
+  await page.screenshot({ path: 'test-results/vehicle-controls-parachutist-game.png' });
+  const canvas = page.locator('#game-canvas');
+  const box = await canvas.boundingBox();
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.wheel(0, -2400);
+  await expect.poll(() => page.evaluate(() => window.__dbg?.firstPerson)).toBe(true);
+  const before = await page.evaluate(() => ({
+    quaternion: window.__game.camera.quaternion.toArray(),
+    heading: window.__game.plane.heading,
+  }));
+  await page.mouse.down({ button: 'right' });
+  await page.mouse.move(x + 100, y, { steps: 5 });
+  await page.mouse.up({ button: 'right' });
+  const after = await page.evaluate(() => ({
+    quaternion: window.__game.camera.quaternion.toArray(),
+    heading: window.__game.plane.heading,
+  }));
+  const initialRight = new Vector3(1, 0, 0).applyQuaternion(new Quaternion(...before.quaternion));
+  const newForward = new Vector3(0, 0, -1).applyQuaternion(new Quaternion(...after.quaternion));
+  expect(newForward.dot(initialRight)).toBeGreaterThan(0.05);
+  expect(Math.abs(after.heading - before.heading)).toBeLessThan(0.02);
 });
 
 test.describe('selected vehicle mobile help', () => {
@@ -148,11 +241,11 @@ test.describe('selected vehicle mobile help', () => {
     await closeHelp();
 
     await backToMenu();
-    await chooseVehicle(page, 'Piper PA-28');
+    await chooseVehicle(page, 'Mooney M20M');
     await page.locator('#start-btn').click();
     await expect(page.locator('#menu')).toBeHidden({ timeout: 12000 });
     await openHelp();
-    await expect(page.locator('#touch-help-intro')).toHaveText('Piper PA-28 controls.');
+    await expect(page.locator('#touch-help-intro')).toHaveText('Mooney M20M controls.');
     await expect(page.locator('#touch-help-list')).toContainText('Joystick');
     await expect(page.locator('#touch-help-list')).toContainText('Faster / Slower');
     await expect(page.locator('#touch-help-list')).not.toContainText('Takeoff');

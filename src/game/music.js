@@ -13,7 +13,9 @@ let blackHoleTransitProgress = 0;
 let resetScoreWhenSilent = false;
 let musicMuted = false;
 
-try { musicMuted = localStorage.getItem(MUSIC_MUTED_KEY) === "1"; } catch { /* optional */ }
+// Music is on by default on every page visit. In-session mute remains under
+// the user's control, but a previous visit must not silently start muted.
+try { localStorage.setItem(MUSIC_MUTED_KEY, "0"); } catch { /* optional */ }
 
 if (background) {
   background.loop = true;

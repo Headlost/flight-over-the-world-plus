@@ -8,6 +8,10 @@ function setup(canvas) {
   const dpr = Math.min(devicePixelRatio, 2);
   const w = canvas.clientWidth;
   const h = canvas.clientHeight;
+  // A hidden HUD has no layout box. Drawing into its canvases would produce
+  // a negative gauge radius and CanvasRenderingContext2D.arc would terminate
+  // the entire animation loop. Treat a non-renderable canvas as a no-op.
+  if (!Number.isFinite(w) || !Number.isFinite(h) || w < 4 || h < 4) return null;
   if (canvas.width !== Math.round(w * dpr) || canvas.height !== Math.round(h * dpr)) {
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
@@ -54,7 +58,9 @@ function needle(ctx, cx, cy, angle, len) {
 
 // tarcza łukowa: 0 w lewym dolnym, max w prawym dolnym (zakres 240°)
 function arcGauge(canvas, value, max, unit, majorStep, minorStep) {
-  const { ctx, w, h } = setup(canvas);
+  const surface = setup(canvas);
+  if (!surface) return;
+  const { ctx, w, h } = surface;
   const cx = w / 2;
   const cy = h / 2;
   const r = Math.min(w, h) / 2 - 2;
@@ -124,7 +130,9 @@ export function drawAltimeter(canvas, aglM) {
 }
 
 export function drawCompass(canvas, headingDeg) {
-  const { ctx, w, h } = setup(canvas);
+  const surface = setup(canvas);
+  if (!surface) return;
+  const { ctx, w, h } = surface;
   const cx = w / 2;
   const cy = h / 2;
   const r = Math.min(w, h) / 2 - 2;

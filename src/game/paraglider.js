@@ -2,10 +2,11 @@ import { Group, MathUtils } from 'three';
 import { createParachutistCharacter } from './parachutistCharacter.js';
 import { createParachutistCanopy, updateParachutistSuspension } from './parachutistCanopy.js';
 import { updateParachutistCharacter } from './parachutistMotion.js';
+import { attachParachutistSkin, syncParachutistSkin } from './parachutistSkin.js';
 
 const R_EARTH = 6378137;
 export const PARACHUTIST_WALK_SPEED = 2.5;
-export const PARACHUTIST_RUN_SPEED = 4.8;
+export const PARACHUTIST_RUN_SPEED = 6.2;
 export const PARACHUTIST_GROUND_CLEARANCE = 0.32;
 const GROUND_CLEARANCE = PARACHUTIST_GROUND_CLEARANCE;
 const GENTLE_LAUNCH_HEIGHT = 12;
@@ -37,6 +38,13 @@ export function createParachutistModel() {
   root.userData.parachutist = { canopy, character, active: "airborne" };
   root.userData.key = "parachutist";
   setParachutistState(root, "airborne", 0, true);
+  return root;
+}
+
+export function buildParachutistModel(gltf) {
+  const root = createParachutistModel();
+  attachParachutistSkin(root.userData.parachutist.character, gltf.scene);
+  syncParachutistSkin(root.userData.parachutist.character);
   return root;
 }
 
@@ -74,6 +82,7 @@ export function updateParachutistModel(root, state, speed, dt, input = {}) {
   if (!rig) return;
   setParachutistState(root, state, speed);
   rig.pose = updateParachutistCharacter(rig.character, { ...input, state, speed, dt });
+  syncParachutistSkin(rig.character);
   if (rig.canopy.visible) updateParachutistSuspension(rig.canopy);
 }
 
@@ -135,7 +144,8 @@ export class ParachutistController {
       const gaitSpeed = direction > 0 && ctrl.throttle > 0.5
         ? PARACHUTIST_RUN_SPEED : PARACHUTIST_WALK_SPEED;
       const target = direction * gaitSpeed;
-      this.speed += (target - this.speed) * (1 - Math.exp(-12 * dt));
+      const groundSpeedResponse = target > this.speed ? 12 * 1.5 : 12;
+      this.speed += (target - this.speed) * (1 - Math.exp(-groundSpeedResponse * dt));
       if (Math.abs(direction) < 0.02) this.speed *= Math.exp(-14 * dt);
       advance(this, this.speed * dt);
       this.pitch = 0;
@@ -184,7 +194,8 @@ export class ParachutistController {
     const targetSpeed = speedInput > 0.05 ? this.cruise + (this.boost - this.cruise) * speedInput
       : speedInput < -0.05 ? this.cruise + (this.cruise - this.brake) * speedInput
       : this.cruise;
-    this.speed += (targetSpeed - this.speed) * (1 - Math.exp(-2.4 * dt));
+    const airSpeedResponse = targetSpeed > this.speed ? 2.4 * 1.5 : 2.4;
+    this.speed += (targetSpeed - this.speed) * (1 - Math.exp(-airSpeedResponse * dt));
     this.speed = MathUtils.clamp(this.speed, this.brake, this.boost);
     const targetRoll = -ctrl.roll * 0.68;
     this.roll += (targetRoll - this.roll) * (1 - Math.exp(-3.8 * dt));

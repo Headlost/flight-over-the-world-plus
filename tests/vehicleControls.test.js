@@ -34,11 +34,18 @@ test("ordinary aircraft ids share one focused control profile", () => {
 });
 
 test("special vehicle aliases resolve to their own profiles", () => {
+  for (const vehicle of ["boeing737", "a380"]) {
+    assert.equal(vehicleControlProfileKey(vehicle), "airliner");
+    assert.match(profileText(getVehicleControls(vehicle)), /z\s+contrails on\/off/);
+  }
   for (const vehicle of ["dzikiDzik", "dziki-dzik", "dziki_dzik"]) {
     assert.equal(vehicleControlProfileKey(vehicle), "dzikiDzik");
   }
   for (const vehicle of ["parachutist", "paraglider"]) {
     assert.equal(vehicleControlProfileKey(vehicle), "parachutist");
+  }
+  for (const vehicle of ["freeflyer", "free-flight", "free_flight", "superman"]) {
+    assert.equal(vehicleControlProfileKey(vehicle), "freeflyer");
   }
   assert.equal(vehicleControlProfileKey("rocket"), "rocketAtmosphere");
   assert.equal(vehicleControlProfileKey("rocket", { space: true }), "rocketSpace");
@@ -47,6 +54,11 @@ test("special vehicle aliases resolve to their own profiles", () => {
 });
 
 test("each special profile contains its own controls and no controls from other vehicles", () => {
+  const airliner = getVehicleControls("boeing737");
+  assert.match(profileText(airliner), /contrails/);
+  assert.match(profileText(airliner), /gamepad secondary/);
+  assertExcludes(airliner, ["loop", "rapid turn", "canopy", "orbit", "hyperdrive", "planet"]);
+
   const aerobatic = getVehicleControls("dzikiDzik");
   assert.match(profileText(aerobatic), /loops/);
   assert.match(profileText(aerobatic), /rapid turns/);
@@ -58,6 +70,12 @@ test("each special profile contains its own controls and no controls from other 
   assert.match(profileText(parachutist), /gentle takeoff/);
   assert.match(profileText(parachutist), /under canopy/);
   assertExcludes(parachutist, ["loop", "rapid turn", "smoke", "orbit", "hyperdrive", "planet"]);
+
+  const freeflyer = getVehicleControls("freeflyer");
+  assert.match(profileText(freeflyer), /independent 360/);
+  assert.match(profileText(freeflyer), /direct yaw/);
+  assert.match(profileText(freeflyer), /land/);
+  assertExcludes(freeflyer, ["canopy", "smoke", "orbit", "hyperdrive", "planet"]);
 
   const atmosphericRocket = getVehicleControls("rocket");
   assert.match(profileText(atmosphericRocket), /launch to orbit/);

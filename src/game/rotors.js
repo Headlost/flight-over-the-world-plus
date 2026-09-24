@@ -1,161 +1,187 @@
 import {
-  CanvasTexture,
-  CircleGeometry,
-  DoubleSide,
-  Euler,
-  Group,
-  Mesh,
-  MeshBasicMaterial,
-  SRGBColorSpace,
-  Vector3,
+  Box3, CanvasTexture, CircleGeometry, DoubleSide, ExtrudeGeometry, Group, Mesh,
+  MeshBasicMaterial, MeshStandardMaterial, Shape, SphereGeometry,
+  SRGBColorSpace, Vector3,
 } from "three";
 
-const _size = new Vector3();
-const _center = new Vector3();
-
-let discTex = null;
-function discTexture() {
-  if (discTex) return discTex;
-  const c = document.createElement("canvas");
-  c.width = c.height = 256;
-  const ctx = c.getContext("2d");
-  const g = ctx.createRadialGradient(128, 128, 4, 128, 128, 126);
-  g.addColorStop(0, "rgba(24, 26, 30, 0.50)");
-  g.addColorStop(0.2, "rgba(48, 52, 58, 0.38)");
-  g.addColorStop(0.75, "rgba(70, 76, 84, 0.30)");
-  g.addColorStop(1, "rgba(70, 76, 84, 0.05)");
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.arc(128, 128, 126, 0, Math.PI * 2);
-  ctx.fill();
-  discTex = new CanvasTexture(c);
-  discTex.colorSpace = SRGBColorSpace;
-  return discTex;
+let blurTexture;
+function propBlurTexture() {
+  if (blurTexture) return blurTexture;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = 256;
+  const context = canvas.getContext("2d");
+  const gradient = context.createRadialGradient(128, 128, 8, 128, 128, 126);
+  gradient.addColorStop(0, "rgba(22, 24, 28, 0.12)");
+  gradient.addColorStop(0.72, "rgba(67, 72, 79, 0.22)");
+  gradient.addColorStop(1, "rgba(67, 72, 79, 0)");
+  context.fillStyle = gradient;
+  context.beginPath();
+  context.arc(128, 128, 126, 0, Math.PI * 2);
+  context.fill();
+  blurTexture = new CanvasTexture(canvas);
+  blurTexture.colorSpace = SRGBColorSpace;
+  blurTexture.userData.sharedModelTexture = true;
+  return blurTexture;
 }
 
-function discMaterial() {
-  return new MeshBasicMaterial({
-    map: discTexture(),
-    transparent: true,
-    opacity: 1,
-    side: DoubleSide,
-    depthWrite: false,
-  });
-}
+const nameOf = object => (object.name || "").toLowerCase();
 
-function nameOf(o) {
-  return (o.name || "").toLowerCase();
-}
-
-function isBlade(o) {
-  if (!o.isMesh) return false;
-  const n = nameOf(o);
-  return (
-    n === "helice" ||
-    n === "propl" ||
-    n === "propr" ||
-    n.includes("propeller") ||
-    n.includes("fanslow") ||
-    /(^|_)rotor($|_)/.test(n)
-  );
-}
-
-function isStockPropVisual(o) {
-  if (!o.isMesh) return false;
-  const n = nameOf(o);
-  return (
-    n.includes("propblur") ||
-    n.includes("propdisc") ||
-    n.includes("fanfast") ||
-    n.includes("fanmedium") ||
-    n === "helice" ||
-    n === "propl" ||
-    n === "propr" ||
-    n.includes("propeller") ||
-    n.includes("fanslow")
-  );
-}
-
-/** Jedna tarcza na zespół śmigła — ten sam parent + ta sama nazwa (np. dwa helice). */
-function propUnits(blades) {
-  const map = new Map();
-  for (const b of blades) {
-    const key = `${b.parent?.uuid || "x"}:${nameOf(b)}`;
-    if (!map.has(key)) map.set(key, []);
-    map.get(key).push(b);
+function rotorId(object, vehicle) {
+  if (!object.isMesh) return null;
+  const name = nameOf(object);
+  if (vehicle === "ac130") {
+    // Four real blade groups and hubs were retained during OBJ -> GLB import.
+    // The source's helice1..4 meshes are tiny cockpit indicators.
+    // GLTFLoader strips punctuation from Blender names: pal1.003 -> pal1003.
+    const match = /^(?:pal[1-4]|bol)(\d{3})?_/.exec(name);
+    return match ? `ac130-${match[1] || "0"}` : null;
   }
-  return [...map.values()];
+  if (vehicle === "mooney") return name.startsWith("helice_") ? "mooney" : null;
+  if (/^(?:propl|propr)$/.test(name) || name.includes("propeller")
+      || name.includes("fanslow") || /(^|_)rotor($|_)/.test(name)) {
+    return name;
+  }
+  return null;
 }
 
-function attachDisc(blades) {
-  const src = blades[0];
-  if (src.userData.spinHolder) return src.userData.spinHolder;
-  const parent = src.parent;
-  if (!parent || !src.geometry) return null;
-
-  const geo = src.geometry;
-  if (!geo.boundingBox) geo.computeBoundingBox();
-  geo.boundingBox.getSize(_size);
-  geo.boundingBox.getCenter(_center);
-  const axes = [
-    { s: _size.x, e: new Euler(0, Math.PI / 2, 0) },
-    { s: _size.y, e: new Euler(Math.PI / 2, 0, 0) },
-    { s: _size.z, e: new Euler(0, 0, 0) },
-  ].sort((a, b) => a.s - b.s);
-  const radius = Math.max(axes[1].s, axes[2].s) * 0.51;
-  if (!(radius > 0.02)) return null;
+function makeRotor(root, parts, id) {
+  root.updateMatrixWorld(true);
+  const hub = parts.find(part => nameOf(part).startsWith("bol")) || parts[0];
+  const centre = new Box3().setFromObject(hub).getCenter(new Vector3());
+  root.worldToLocal(centre);
+  const allParts = new Box3();
+  for (const part of parts) allParts.expandByObject(part);
+  const size = allParts.getSize(new Vector3());
+  const radius = Math.max(size.x, size.y) * 0.5;
+  if (!(radius > 0.1)) return null;
 
   const holder = new Group();
-  holder.name = "rotor-disc";
-  holder.position.copy(src.position);
-  holder.quaternion.copy(src.quaternion);
-  holder.scale.copy(src.scale);
-
-  const disc = new Mesh(new CircleGeometry(radius, 64), discMaterial());
-  disc.position.copy(_center);
-  disc.rotation.copy(axes[0].e);
-  disc.renderOrder = 2;
-  holder.add(disc);
-  parent.add(holder);
-
-  holder.userData.spinMesh = disc;
-  for (const b of blades) b.userData.spinHolder = holder;
+  holder.name = `spinning-propeller-${id}`;
+  holder.position.copy(centre);
+  root.add(holder);
+  root.updateMatrixWorld(true);
+  // attach preserves each baked mesh's world position. Moving the parent
+  // thereafter rotates every blade about its own engine, never the fuselage.
+  for (const part of parts) {
+    holder.attach(part);
+    part.userData.spinHolder = holder;
+    part.visible = true;
+  }
+  if (typeof document !== "undefined") {
+    const disc = new Mesh(
+      new CircleGeometry(radius * 0.98, 40),
+      new MeshBasicMaterial({
+        map: propBlurTexture(), transparent: true, opacity: 0.15,
+        side: DoubleSide, depthWrite: false,
+      }),
+    );
+    disc.name = "propeller-motion-blur";
+    disc.raycast = () => {};
+    disc.position.z = 0.05;
+    holder.add(disc);
+    holder.userData.blur = disc;
+  }
+  holder.userData.radius = radius;
+  holder.userData.parts = parts;
   return holder;
 }
 
-/** Menu: statyczne łopaty. Lot: koło w miejscu piasty, w płaszczyźnie śmigła. */
+function makeLocatorRotor(root, marker) {
+  root.updateMatrixWorld(true);
+  const centre = marker.getWorldPosition(new Vector3());
+  root.worldToLocal(centre);
+  const rootScale = root.getWorldScale(new Vector3());
+  const markerScale = marker.getWorldScale(new Vector3());
+  const radius = Number(marker.userData.radius) * markerScale.x / rootScale.x;
+  if (!Number.isFinite(radius) || radius <= 0) return null;
+
+  const holder = new Group();
+  holder.name = `spinning-propeller-${marker.name}`;
+  holder.position.copy(centre);
+  const shape = new Shape();
+  shape.moveTo(-radius * 0.09, radius * 0.12);
+  shape.lineTo(-radius * 0.105, radius * 0.34);
+  shape.quadraticCurveTo(-radius * 0.16, radius * 0.77, -radius * 0.07, radius * 0.98);
+  shape.quadraticCurveTo(radius * 0.055, radius * 1.01, radius * 0.09, radius * 0.88);
+  shape.quadraticCurveTo(radius * 0.12, radius * 0.58, radius * 0.085, radius * 0.30);
+  shape.lineTo(radius * 0.08, radius * 0.12);
+  shape.closePath();
+  const geometry = new ExtrudeGeometry(shape, { depth: radius * 0.022, bevelEnabled: false, curveSegments: 4 });
+  const material = new MeshStandardMaterial({ color: 0x20242a, metalness: 0.43, roughness: 0.4 });
+  const parts = [];
+  const bladeCount = Math.max(2, Math.min(8, Number(marker.userData.blades) || 4));
+  for (let i = 0; i < bladeCount; i++) {
+    const blade = new Mesh(geometry, material);
+    blade.name = `${marker.name}-blade-${i + 1}`;
+    blade.rotation.z = i * Math.PI * 2 / bladeCount;
+    blade.position.z = -radius * 0.085;
+    holder.add(blade);
+    parts.push(blade);
+  }
+  const spinner = new Mesh(new SphereGeometry(radius * 0.16, 16, 10),
+    new MeshStandardMaterial({ color: 0x363b43, metalness: 0.48, roughness: 0.35 }));
+  spinner.name = `${marker.name}-spinner`;
+  spinner.scale.z = 1.3;
+  spinner.position.z = -radius * 0.045;
+  holder.add(spinner);
+  parts.push(spinner);
+  if (typeof document !== "undefined") {
+    const disc = new Mesh(new CircleGeometry(radius * 0.98, 40),
+      new MeshBasicMaterial({ map: propBlurTexture(), transparent: true,
+        opacity: 0.15, side: DoubleSide, depthWrite: false }));
+    disc.name = "propeller-motion-blur";
+    disc.raycast = () => {};
+    disc.position.z = -radius * 0.10;
+    holder.add(disc);
+    holder.userData.blur = disc;
+  }
+  holder.userData.radius = radius;
+  holder.userData.parts = parts;
+  root.add(holder);
+  return holder;
+}
+
+/** Imported blades remain visible and rotate; the subtle disc only adds blur. */
 export function applyRotorState(root, flying) {
   if (!root) return;
-  const blades = [];
-  root.traverse((o) => {
-    if (isStockPropVisual(o)) o.visible = !flying && isBlade(o);
-    if (isBlade(o)) blades.push(o);
+  const existing = root.userData.spinRotors;
+  if (existing?.length) {
+    for (const holder of existing) {
+      holder.rotation.z = flying ? holder.rotation.z : 0;
+      if (holder.userData.blur) holder.userData.blur.visible = !!flying;
+    }
+    return;
+  }
+  if (!flying) return;
+  const markers = [];
+  root.traverse(object => {
+    if (/^PROP_HUB_\d+$/.test(object.name)) markers.push(object);
   });
-
+  if (markers.length) {
+    root.userData.spinRotors = markers
+      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+      .map(marker => makeLocatorRotor(root, marker)).filter(Boolean);
+    return;
+  }
+  const units = new Map();
+  root.traverse(object => {
+    const id = rotorId(object, root.userData.key);
+    if (!id) return;
+    if (!units.has(id)) units.set(id, []);
+    units.get(id).push(object);
+  });
   const holders = [];
-  if (flying) {
-    root.updateMatrixWorld(true);
-    for (const unit of propUnits(blades)) {
-      const holder = attachDisc(unit);
-      if (holder) {
-        holder.visible = true;
-        holders.push(holder);
-      }
-    }
-  } else {
-    for (const b of blades) {
-      if (b.userData.spinHolder) b.userData.spinHolder.visible = false;
-    }
+  for (const [id, parts] of units) {
+    const holder = makeRotor(root, parts, id);
+    if (holder) holders.push(holder);
   }
   root.userData.spinRotors = holders;
 }
 
 export function spinRotors(root, dt, speed) {
-  const list = root?.userData?.spinRotors;
-  if (!list?.length) return;
-  const w = Math.max(4, speed * 0.25) * dt;
-  for (const holder of list) {
-    const disc = holder.userData.spinMesh;
-    if (disc) disc.rotation.z += w;
-  }
+  const holders = root?.userData?.spinRotors;
+  if (!holders?.length || !Number.isFinite(dt) || dt <= 0) return;
+  const radians = Math.max(9, Math.abs(Number(speed) || 0) * 0.25)
+    * Math.min(dt, 0.05);
+  for (const holder of holders) holder.rotation.z += radians;
 }

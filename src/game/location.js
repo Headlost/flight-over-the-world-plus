@@ -39,16 +39,16 @@ export function geocodeCity(text) {
 export function setupLocationPicker(onOpen) {
   const dialog = document.createElement('dialog'); dialog.className = 'flight-dialog location-dialog';
   dialog.setAttribute('aria-labelledby', 'location-title');
-  dialog.innerHTML = `<div class="dialog-heading"><h2 id="location-title">Choose your departure</h2><button id="pin-close" aria-label="Close map">×</button></div>
-    <form id="pin-search"><label for="pin-query">City, address or latitude, longitude</label><div class="pin-row"><input id="pin-query" maxlength="240" placeholder="Paris or 48.8584, 2.2945" required><button>Search</button></div></form>
-    <p id="pin-status" role="status">Click the map to place your departure pin.</p><div id="departure-map" aria-label="Departure map"></div>
+  dialog.innerHTML = `<div class="dialog-heading"><h2 id="location-title">Choose your departure</h2><button id="pin-close" type="button" aria-label="Close map">×</button></div>
+    <form id="pin-search"><label for="pin-query">City, address or latitude, longitude</label><div class="pin-row"><input id="pin-query" maxlength="240" placeholder="Paris or 48.8584, 2.2945" required data-gamepad-keyboard data-gamepad-submit-target="#pin-search-submit"><button id="pin-search-submit" type="submit">Search</button></div></form>
+    <p id="pin-status" role="status">Click the map to place your departure pin. Gamepad: X picks up or drops the pin; left stick/D-pad moves it.</p><div id="departure-map" aria-label="Departure map"></div>
     <div class="pin-row"><span class="settings-note">No account needed. Search powered by Photon / OpenStreetMap.</span><button id="pin-use" disabled>Use this location</button></div>`;
   document.body.append(dialog);
-  let map, marker, selected, target, busy = false, generation = 0, L;
+  let map, marker, selected, target, busy = false, generation = 0, L, gamepadPinPicked = false;
   const status = dialog.querySelector('#pin-status'), use = dialog.querySelector('#pin-use');
   const select = (lat, lon) => {
     selected = parseCoordinates(`${lat}, ${lon}`); if (!selected) return;
-    status.textContent = `Departure: ${lat.toFixed(6)}, ${lon.toFixed(6)}`; use.disabled = false;
+    status.textContent = `Departure: ${lat.toFixed(6)}, ${lon.toFixed(6)}${gamepadPinPicked ? ' · Pin picked up — move with left stick/D-pad, X to drop.' : ' · X to pick up pin.'}`; use.disabled = false;
     if (map) {
       if (!marker) {
         marker = L.marker([lat,lon], {draggable:true, title:'Flight departure', keyboard:true, icon:L.divIcon({className:'departure-pin',html:'<span aria-hidden="true">●</span>',iconSize:[28,36],iconAnchor:[14,36]})}).addTo(map);
@@ -56,7 +56,7 @@ export function setupLocationPicker(onOpen) {
       } else marker.setLatLng([lat,lon]);
     }
   };
-  dialog.addEventListener('close', () => { generation++; });
+  dialog.addEventListener('close', () => { generation++; gamepadPinPicked = false; });
   dialog.querySelector('#pin-close').onclick = () => dialog.close();
   use.onclick = () => {
     if (!selected || !target || target.readOnly) return;
@@ -79,11 +79,14 @@ export function setupLocationPicker(onOpen) {
     const input = document.getElementById(id); input.maxLength = 240;
     input.setAttribute('aria-label', 'Starting city, address or latitude, longitude');
     const button = document.createElement('button'); button.type = 'button'; button.className = 'pick-location'; button.textContent = '⌖ Choose on map';
+    button.id = `${id}-choose-map`;
+    input.dataset.gamepadNavRight = `#${button.id}`;
+    button.dataset.gamepadNavLeft = `#${id}`;
     input.insertAdjacentElement('afterend', button);
     button.onclick = async () => {
       if (input.readOnly || input.style.display === 'none') return;
       const current = ++generation;
-      target = input; selected = null; use.disabled = true;
+      target = input; selected = null; gamepadPinPicked = false; use.disabled = true;
       if (marker) { marker.remove(); marker = null; }
       dialog.querySelector('#pin-query').value = input.value;
       onOpen(); dialog.showModal(); status.textContent = 'Loading map…';
@@ -98,10 +101,36 @@ export function setupLocationPicker(onOpen) {
           map.on('click', event => { const point = event.latlng.wrap(); select(point.lat,point.lng); });
         }
         map.invalidateSize();
-        status.textContent = 'Click the map or search to choose a departure. You can drag the pin.';
+        status.textContent = 'Click the map or search to choose a departure. Gamepad: X picks up or drops the pin; left stick/D-pad moves it.';
         const initial = parseCoordinates(input.value);
         if (initial) { select(initial.lat, initial.lon); map.setView([initial.lat,initial.lon],13); }
       } catch { status.textContent = 'The map could not load. Search or enter latitude, longitude instead.'; }
     };
   }
+  return {
+    get isOpen() { return dialog.open; },
+    get pinPicked() { return dialog.open && gamepadPinPicked; },
+    toggleGamepadPin() {
+      if (!dialog.open) return false;
+      gamepadPinPicked = !gamepadPinPicked;
+      if (!selected && gamepadPinPicked) {
+        const centre = map?.getCenter();
+        select(centre?.lat ?? 48.8584, centre?.lng ?? 2.2945);
+      } else if (selected) select(selected.lat, selected.lon);
+      return gamepadPinPicked;
+    },
+    moveGamepadPin(direction) {
+      if (!dialog.open || !gamepadPinPicked || !['up', 'down', 'left', 'right'].includes(direction)) return false;
+      const centre = map?.getCenter();
+      const point = selected || { lat: centre?.lat ?? 48.8584, lon: centre?.lng ?? 2.2945 };
+      const dx = direction === 'right' ? 24 : direction === 'left' ? -24 : 0;
+      const dy = direction === 'down' ? 24 : direction === 'up' ? -24 : 0;
+      const projected = map?.project([point.lat, point.lon], map.getZoom());
+      const next = projected ? map.unproject([projected.x + dx, projected.y + dy], map.getZoom()).wrap()
+        : { lat: Math.max(-90, Math.min(90, point.lat - dy * 0.001)), lng: point.lon + dx * 0.001 };
+      select(next.lat, next.lng);
+      map?.panInside([next.lat, next.lng], { animate: false });
+      return true;
+    },
+  };
 }
