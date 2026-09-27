@@ -28,7 +28,7 @@ Gra działa bez instalacji i bez zakładania konta. Domyślny dostęp do mapy je
 ## Najważniejsze możliwości
 
 - swobodny lot nad Google Photorealistic 3D Tiles, z adaptacyjną jakością i dodatkowym priorytetem doczytywania wąskiego pasa przed samolotem podczas przyspieszania;
-- wybór miejsca startu przez nazwę, adres, współrzędne lub pinezkę na mapie OpenStreetMap;
+- wybór miejsca startu przez nazwę, adres, współrzędne lub pinezkę na mapie OpenStreetMap; **Choose your departure** rozpoznaje popularne polskie i angielskie nazwy miast, pokazuje wyniki z krajem i regionem oraz obsługuje współrzędne N/S/E/W i stopnie, minuty, sekundy (np. `29.0000° N, 79.0000° W`);
 - **Single Player** oraz pokoje **Multiplayer** z linkiem i kodem QR, wspólnym startem, czatem i rozmową głosową;
 - dziewięć aktywnych wyborów: **Mooney M20M**, **Boeing 737-800**, **Airbus A380**, **AC-130 Hercules**, **B-2 Spirit**, **Fighter**, akrobacyjny **Dziki dzik**, rakieta i spadochroniarz — z autorskimi modelami Headlost;
 - obracające się śmigła, efekty dysz silników odrzutowych oraz domyślnie włączone, przełączane smugi kondensacyjne Boeinga i Airbusa;
@@ -215,7 +215,7 @@ No installation or account is needed. Default terrain access is selected from th
 ## Features
 
 - Fly freely over **Google Photorealistic 3D Tiles**, with adaptive quality and extra loading priority for a narrow corridor ahead of the aircraft while accelerating.
-- Choose a departure by place name, address, coordinates or a pin on an OpenStreetMap map.
+- Choose a departure by place name, address, coordinates or a pin on an OpenStreetMap map. **Choose your departure** recognises common Polish and English city names, labels results with their country and region, and supports N/S/E/W coordinates and degrees, minutes and seconds (e.g. `29.0000° N, 79.0000° W`).
 - Play **Single Player** or join **Multiplayer** rooms with invitation links, QR codes, shared departures, text chat and voice chat.
 - Choose from nine active options: **Mooney M20M**, **Boeing 737-800**, **Airbus A380**, **AC-130 Hercules**, **B-2 Spirit**, **Fighter**, the aerobatic **Dziki dzik**, a rocket and a parachutist — featuring original models by **Headlost**.
 - See rotating propellers, jet-nozzle effects and switchable Boeing and Airbus contrails, enabled by default.

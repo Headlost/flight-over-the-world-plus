@@ -1,62 +1,40 @@
-export function parseCoordinates(text) {
-  const match = String(text).trim().match(/^([+-]?\d+(?:\.\d+)?)\s*,\s*([+-]?\d+(?:\.\d+)?)$/);
-  if (!match) return null;
-  const lat = Number(match[1]), lon = Number(match[2]);
-  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) throw new Error('Coordinates must be latitude −90…90, longitude −180…180.');
-  return { lat, lon };
-}
-
-const cache = new Map();
-let lastRequest = 0;
-let pending = Promise.resolve();
-export function geocodeCity(text) {
-  const name = String(text).trim().slice(0, 240);
-  try { const coordinates = parseCoordinates(name); if (coordinates) return Promise.resolve(coordinates); }
-  catch (error) { return Promise.reject(error); }
-  if (!name) return Promise.resolve(null);
-  if (cache.has(name)) return Promise.resolve(cache.get(name));
-  // Explicit submit only: no autocomplete traffic to the public search service.
-  const request = pending.then(async () => {
-    if (cache.has(name)) return cache.get(name);
-    await new Promise(resolve => setTimeout(resolve, Math.max(0, 1100 - (Date.now() - lastRequest))));
-    lastRequest = Date.now();
-    const endpoint = import.meta.env?.VITE_GEOCODING_URL || 'https://photon.komoot.io/api/';
-    const url = new URL(endpoint, globalThis.location?.href || 'http://localhost');
-    url.searchParams.set('q',name); url.searchParams.set('limit','1');
-    const response = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!response.ok) throw new Error(response.status === 429 ? 'Search is busy. Wait a moment or place a pin on the map.' : 'Location search is unavailable. Place a pin on the map instead.');
-    const data = await response.json();
-    const point = data.features?.[0]?.geometry?.coordinates;
-    const value = point && point.length >= 2 ? parseCoordinates(`${point[1]}, ${point[0]}`) : null;
-    if (value) cache.set(name, value);
-    if (cache.size > 100) cache.delete(cache.keys().next().value);
-    return value;
-  });
-  pending = request.catch(() => {});
-  return request;
-}
+import { parseCoordinates, searchLocations } from './locationSearch.js';
+export { parseCoordinates, geocodeCity } from './locationSearch.js';
 
 export function setupLocationPicker(onOpen) {
   const dialog = document.createElement('dialog'); dialog.className = 'flight-dialog location-dialog';
   dialog.setAttribute('aria-labelledby', 'location-title');
   dialog.innerHTML = `<div class="dialog-heading"><h2 id="location-title">Choose your departure</h2><button id="pin-close" type="button" aria-label="Close map">×</button></div>
-    <form id="pin-search"><label for="pin-query">City, address or latitude, longitude</label><div class="pin-row"><input id="pin-query" maxlength="240" placeholder="Paris or 48.8584, 2.2945" required data-gamepad-keyboard data-gamepad-submit-target="#pin-search-submit"><button id="pin-search-submit" type="submit">Search</button></div></form>
+    <form id="pin-search"><label for="pin-query">City, address or latitude, longitude (Polish / English)</label><div class="pin-row"><input id="pin-query" maxlength="240" placeholder="Waszyngton / Washington or 29.0000° N, 79.0000° W" required data-gamepad-keyboard data-gamepad-submit-target="#pin-search-submit"><button id="pin-search-submit" type="submit">Search</button></div></form>
+    <ul id="pin-results" class="location-results" aria-label="Search results — choose a departure" hidden></ul>
     <p id="pin-status" role="status">Click the map to place your departure pin. Gamepad: X picks up or drops the pin; left stick/D-pad moves it.</p><div id="departure-map" aria-label="Departure map"></div>
     <div class="pin-row"><span class="settings-note">No account needed. Search powered by Photon / OpenStreetMap.</span><button id="pin-use" disabled>Use this location</button></div>`;
   document.body.append(dialog);
-  let map, marker, selected, target, busy = false, generation = 0, L, gamepadPinPicked = false;
+  let map, marker, selected, target, selectedLabel = '', busy = false, generation = 0, searchRevision = 0, L, gamepadPinPicked = false;
   const status = dialog.querySelector('#pin-status'), use = dialog.querySelector('#pin-use');
-  const select = (lat, lon) => {
+  const query = dialog.querySelector('#pin-query'), results = dialog.querySelector('#pin-results');
+  const searchButton = dialog.querySelector('#pin-search-submit');
+  const resetSearch = (clearPin = false) => {
+    searchRevision++; busy = false; searchButton.disabled = false;
+    results.replaceChildren(); results.hidden = true;
+    if (clearPin) {
+      selected = null; use.disabled = true;
+      marker?.remove(); marker = null;
+    }
+  };
+  const select = (lat, lon, label = '') => {
     selected = parseCoordinates(`${lat}, ${lon}`); if (!selected) return;
-    status.textContent = `Departure: ${lat.toFixed(6)}, ${lon.toFixed(6)}${gamepadPinPicked ? ' · Pin picked up — move with left stick/D-pad, X to drop.' : ' · X to pick up pin.'}`; use.disabled = false;
+    selectedLabel = label;
+    status.textContent = `Departure: ${label ? `${label} · ` : ''}${lat.toFixed(6)}, ${lon.toFixed(6)}${gamepadPinPicked ? ' · Pin picked up — move with left stick/D-pad, X to drop.' : ' · X to pick up pin.'}`; use.disabled = false;
     if (map) {
       if (!marker) {
         marker = L.marker([lat,lon], {draggable:true, title:'Flight departure', keyboard:true, icon:L.divIcon({className:'departure-pin',html:'<span aria-hidden="true">●</span>',iconSize:[28,36],iconAnchor:[14,36]})}).addTo(map);
-        marker.on('dragend', () => { const point = marker.getLatLng().wrap(); select(point.lat, point.lng); });
+        marker.on('dragend', () => { const point = marker.getLatLng().wrap(); resetSearch(); select(point.lat, point.lng); });
       } else marker.setLatLng([lat,lon]);
     }
   };
-  dialog.addEventListener('close', () => { generation++; gamepadPinPicked = false; });
+  dialog.addEventListener('close', () => { generation++; gamepadPinPicked = false; resetSearch(); });
+  query.addEventListener('input', () => { resetSearch(true); status.textContent = 'Press Search to find a city, address or coordinates.'; });
   dialog.querySelector('#pin-close').onclick = () => dialog.close();
   use.onclick = () => {
     if (!selected || !target || target.readOnly) return;
@@ -65,15 +43,29 @@ export function setupLocationPicker(onOpen) {
   };
   dialog.querySelector('#pin-search').onsubmit = async (event) => {
     event.preventDefault(); if (busy) return; busy = true;
-    const current = generation;
+    const current = generation, revision = ++searchRevision;
+    searchButton.disabled = true; use.disabled = true; selected = null;
+    marker?.remove(); marker = null; results.replaceChildren(); results.hidden = true;
     status.textContent = 'Searching…';
     try {
-      const loc = await geocodeCity(dialog.querySelector('#pin-query').value);
-      if (current !== generation || !dialog.open) return;
-      if (!loc) throw new Error('Location not found. Try a more specific address or place a pin.');
-      select(loc.lat, loc.lon); map?.setView([loc.lat,loc.lon],13);
-    } catch (error) { if (current === generation) status.textContent = error.name === 'TimeoutError' ? 'Search timed out. Place a pin or try again.' : error.message; }
-    finally { busy = false; }
+      const locations = await searchLocations(query.value);
+      if (current !== generation || revision !== searchRevision || !dialog.open) return;
+      if (!locations.length) throw new Error('Location not found. Try a city and country, an English name, or place a pin.');
+      const choose = (loc, index) => {
+        select(loc.lat, loc.lon, loc.label); map?.setView([loc.lat,loc.lon],13);
+        results.querySelectorAll('button').forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+      };
+      if (locations.length > 1) {
+        for (const [index, loc] of locations.entries()) {
+          const item = document.createElement('li'), button = document.createElement('button');
+          button.type = 'button'; button.textContent = loc.label;
+          button.onclick = () => choose(loc, index); item.append(button); results.append(item);
+        }
+        results.hidden = false;
+      }
+      choose(locations[0], 0);
+    } catch (error) { if (current === generation && revision === searchRevision) status.textContent = error.name === 'TimeoutError' ? 'Search timed out. Place a pin or try again.' : error.message; }
+    finally { if (revision === searchRevision) { busy = false; searchButton.disabled = false; } }
   };
   for (const id of ['city-input', 'lobby-city']) {
     const input = document.getElementById(id); input.maxLength = 240;
@@ -86,6 +78,8 @@ export function setupLocationPicker(onOpen) {
     button.onclick = async () => {
       if (input.readOnly || input.style.display === 'none') return;
       const current = ++generation;
+      resetSearch(true);
+      const openingRevision = searchRevision;
       target = input; selected = null; gamepadPinPicked = false; use.disabled = true;
       if (marker) { marker.remove(); marker = null; }
       dialog.querySelector('#pin-query').value = input.value;
@@ -98,12 +92,18 @@ export function setupLocationPicker(onOpen) {
           map = L.map(dialog.querySelector('#departure-map'), {worldCopyJump:true}).setView([48.8584,2.2945],5);
           const layer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19, attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors', updateWhenIdle:true, keepBuffer:1 }).addTo(map);
           layer.on('tileerror', () => { if(dialog.open && !selected) status.textContent = 'Some map images could not load. You can still search or enter coordinates.'; });
-          map.on('click', event => { const point = event.latlng.wrap(); select(point.lat,point.lng); });
+          map.on('click', event => { const point = event.latlng.wrap(); resetSearch(); select(point.lat,point.lng); });
         }
         map.invalidateSize();
-        status.textContent = 'Click the map or search to choose a departure. Gamepad: X picks up or drops the pin; left stick/D-pad moves it.';
-        const initial = parseCoordinates(input.value);
-        if (initial) { select(initial.lat, initial.lon); map.setView([initial.lat,initial.lon],13); }
+        if (openingRevision === searchRevision) {
+          status.textContent = 'Click the map or search to choose a departure. Gamepad: X picks up or drops the pin; left stick/D-pad moves it.';
+          try {
+            const initial = parseCoordinates(input.value);
+            if (initial) { select(initial.lat, initial.lon); map.setView([initial.lat,initial.lon],13); }
+          } catch (error) { status.textContent = error.message; }
+        } else if (selected) {
+          select(selected.lat, selected.lon, selectedLabel); map.setView([selected.lat,selected.lon],13);
+        }
       } catch { status.textContent = 'The map could not load. Search or enter latitude, longitude instead.'; }
     };
   }
@@ -112,6 +112,7 @@ export function setupLocationPicker(onOpen) {
     get pinPicked() { return dialog.open && gamepadPinPicked; },
     toggleGamepadPin() {
       if (!dialog.open) return false;
+      resetSearch();
       gamepadPinPicked = !gamepadPinPicked;
       if (!selected && gamepadPinPicked) {
         const centre = map?.getCenter();
@@ -121,6 +122,7 @@ export function setupLocationPicker(onOpen) {
     },
     moveGamepadPin(direction) {
       if (!dialog.open || !gamepadPinPicked || !['up', 'down', 'left', 'right'].includes(direction)) return false;
+      resetSearch();
       const centre = map?.getCenter();
       const point = selected || { lat: centre?.lat ?? 48.8584, lon: centre?.lng ?? 2.2945 };
       const dx = direction === 'right' ? 24 : direction === 'left' ? -24 : 0;

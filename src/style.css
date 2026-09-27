@@ -53,6 +53,10 @@ body:not(.aerobatic-selected) .touch-yaw-controls { display: none; }
 .pin-row input { min-width: 0; }
 .pin-row button { flex-shrink: 0; }
 .location-dialog { width: min(880px, calc(100vw - 24px)); }
+.location-results { list-style: none; padding: 0; margin: 12px 0; max-height: 160px; overflow-y: auto; }
+.location-results button { width: 100%; margin: 3px 0; text-align: left; background: #20364a; color: #eaf2ff; }
+.location-results button[aria-pressed=true] { border-color: #d6a753; background: #354331; }
+.location-results button:focus-visible { outline: 2px solid #d6a753; outline-offset: -2px; }
 #departure-map { height: min(45dvh, 430px); min-height: 180px; background: #152839; border-radius: 10px; margin: 12px 0; }
 .departure-pin { background: #e5ac42; color: #172331; border: 2px solid white; border-radius: 50% 50% 50% 0; transform-origin: center; box-shadow: 0 3px 10px #0008; text-align: center; font: 18px/28px system-ui; }
 .location-dialog .leaflet-control a { color: #172331; }

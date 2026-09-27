@@ -12,7 +12,8 @@ const files=new Set(execFileSync('git',['ls-files','-z'],{cwd:root,encoding:'utf
 // Include the new, reviewed export tooling and newly implemented modules before
 // their first commit, but never indiscriminately include untracked user files.
 for(const name of ['scripts/export-public-source.mjs','scripts/public-source-manifest.json',
-  'docs/PUBLIC-SOURCE.md','docs/N8N-TERRAIN.md','src/game/googleTileSession.js','src/game/terrainView.js']) {
+  'docs/PUBLIC-SOURCE.md','docs/N8N-TERRAIN.md','src/game/googleTileSession.js','src/game/terrainView.js',
+  'src/game/locationSearch.js','tests/locationSearch.test.js','tests/browser/location-search.spec.js']) {
   if(fs.existsSync(path.join(root,name))) files.add(name);
 }
 fs.mkdirSync(output,{recursive:true});
@@ -45,7 +46,13 @@ const note='# Pominięte moduły źródłowe\n\n'+manifest.notice+'\n\n'+
   'Nie można go przebudować bez prywatnych modułów. Kod wykonywany w przeglądarce pozostaje możliwy do analizy.\n';
 fs.writeFileSync(path.join(output,'OMITTED-MODULES.md'),note);
 const readme=path.join(output,'README.md');
-fs.writeFileSync(readme,'> Publiczny eksport z pominiętymi modułami. Zobacz [OMITTED-MODULES.md](OMITTED-MODULES.md). Pełne źródła i kompilacja są utrzymywane osobno.\n\n'+fs.readFileSync(readme,'utf8'));
+const readmeContent=fs.readFileSync(readme,'utf8');
+const publicNotice='> Publiczny eksport z pominiętymi modułami / Public source snapshot with selected modules omitted. '+
+  'Zobacz / See [OMITTED-MODULES.md](OMITTED-MODULES.md). Pełne źródła i kompilacja są utrzymywane osobno / The complete sources and build are maintained separately.';
+// Keep language navigation first; old templates still receive the notice.
+fs.writeFileSync(readme,readmeContent.includes('<!-- PUBLIC-SOURCE-NOTICE -->')
+  ? readmeContent.replace('<!-- PUBLIC-SOURCE-NOTICE -->',publicNotice)
+  : publicNotice+'\n\n'+readmeContent);
 const containsGitHistory=fs.existsSync(path.join(output,'.git'));
 const containsBuiltGame=fs.existsSync(path.join(output,'dist'));
 if(containsGitHistory||containsBuiltGame) throw Error('Public export contains a forbidden generated directory');
